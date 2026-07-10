@@ -7,7 +7,7 @@ services:
       - qdrant_data:/qdrant/storage
 
   embeddings:
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
+    image: ghcr.io/huggingface/text-embeddings-inference:cuda-latest
     # swap the cpu- tag for a cuda- tag if you have a GPU box
     command: --model-id BAAI/bge-large-en-v1.5
     ports:

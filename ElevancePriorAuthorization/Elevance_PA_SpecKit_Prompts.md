@@ -316,10 +316,92 @@ Phase 4 or later.
 
 ## Notes
 
-- **Before `/speckit.plan` runs**, have your local embedding server, vector store, and LLM
-inference endpoint actually deployed and reachable — the agent will wire configuration against
-them, and a plan built against endpoints that don't exist yet tends to drift once implementation
-starts.
+### Standing up the local stack before `/speckit.plan`
+
+You don't need production infrastructure — just three services running and reachable on your
+machine or dev network so the plan gets written against real endpoints instead of placeholders.
+A minimal `docker-compose.yml` for all three:
+
+```yaml
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"   # REST/gRPC — vector store with native hybrid (dense+sparse) search
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  embeddings:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
+    # swap the cpu- tag for a cuda- tag if you have a GPU box
+    command: --model-id BAAI/bge-large-en-v1.5
+    ports:
+      - "8080:80"     # POST /embed — no public API involved, model runs in-container
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434" # OpenAI-compatible endpoint at /v1/chat/completions
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  qdrant_data:
+  ollama_data:
+```
+
+Bring it up and pull a model:
+
+```bash
+docker compose up -d
+docker compose exec ollama ollama pull llama3.1   # or your team's approved model
+```
+
+Then confirm each is actually reachable before touching `/speckit.plan`. Write the test payloads
+to files first — this sidesteps the bash-vs-PowerShell quoting differences entirely, since `-d
+@file` just needs a filename, not a raw JSON string on the command line:
+
+```bash
+echo '{"inputs":"test sentence"}' > embed-test.json
+echo '{"model":"llama3.1","messages":[{"role":"user","content":"hi"}]}' > chat-test.json
+
+curl http://localhost:6333/collections                                                   # Qdrant is up
+curl http://localhost:8080/embed -X POST -H "Content-Type: application/json" -d @embed-test.json   # embedding server responds
+curl http://localhost:11434/v1/chat/completions -X POST -H "Content-Type: application/json" -d @chat-test.json  # LLM responds
+```
+
+> **Windows/PowerShell note**: `curl` is aliased to `Invoke-WebRequest`, which doesn't understand
+`-X`/`-H`/`-d` and prompts with a "Script Execution Risk" warning on GET requests. Use `curl.exe`
+(the real curl binary bundled with Windows 10+) instead of bare `curl`. PowerShell's `>`
+redirection and the `@file` argument both work the same as above, so there's no quoting to get
+wrong — just run each command on a single line (no trailing `\`, which is a bash-only line
+continuation; PowerShell uses a backtick if you need one):
+>
+> ```powershell
+> "{`"inputs`":`"test sentence`"}" | Set-Content embed-test.json
+> "{`"model`":`"llama3.1`",`"messages`":[{`"role`":`"user`",`"content`":`"hi`"}]}" | Set-Content chat-test.json
+>
+> curl.exe http://localhost:6333/collections
+> curl.exe http://localhost:8080/embed -X POST -H "Content-Type: application/json" -d "@embed-test.json"
+> curl.exe http://localhost:11434/v1/chat/completions -X POST -H "Content-Type: application/json" -d "@chat-test.json"
+> ```
+>
+> (Simplest of all: just open Notepad, paste the raw JSON from the `embed-test.json` line above,
+save it as `embed-test.json` in your project folder, and skip the `Set-Content` step entirely.)
+
+Notes on this setup:
+- **GPU vs CPU**: the embedding and LLM containers will work on CPU but are slow — fine for
+proving the plan out, not for real indexing throughput. Swap in `cuda-` image tags and
+`--gpus all` on the compose services once you move past local dev.
+- **vLLM instead of Ollama**: if your team needs higher throughput or batching, vLLM also serves
+an OpenAI-compatible endpoint (`vllm serve <model> --port 11434`) and is a closer swap-in for
+production; Ollama is the faster path to "something reachable today."
+- **Reranker**: if you're using one, add a fourth service (e.g. a small FastAPI wrapper around a
+`cross-encoder/ms-marco-*` model) the same way — a container exposing one `/rerank` endpoint.
+- **Network isolation**: since none of this should ever reach the public internet, it's worth
+putting these services on an internal Docker network with no default route out, so the "no
+public API calls" principle from the constitution is enforced at the infrastructure level, not
+just by convention.
 - **CI egress check**: worth adding a simple CI step early (Phase 1 or Phase 8) that fails the
 build if it detects an outbound call to a public LLM/embedding host — this is cheap to add early
 and expensive to retrofit.
