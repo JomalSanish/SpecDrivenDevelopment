@@ -45,16 +45,19 @@
 - `id`: UUID (Primary Key)
 - `case_id`: UUID (Foreign Key)
 - `policy_requirement_id`: UUID (Foreign Key)
-- `status`: Enum (`Present`, `Absent`, `Unclear`)
+- `status`: Enum (`Present`, `Absent`, `Unclear`) — the system-generated (original) status
 - `confidence_score`: Float
 - `matched_document_id`: UUID (Nullable)
 - `matched_chunk_id`: UUID (Nullable)
 - `reasoning_log`: Text
+- `overridden_status`: Enum (`Present`, `Absent`, `Unclear`, Nullable) — set only when a nurse manually overrides the system assessment; `status` is left untouched so the original agent output remains reconstructable (resolves CHK009)
+- `overridden_by_id`: UUID (Nullable) — nurse who performed the override
+- `overridden_at`: Timestamp (Nullable)
 
 ### AuditLog
 - `id`: UUID (Primary Key)
 - `case_id`: UUID (Foreign Key)
 - `actor_id`: String (System Agent or Human UUID)
-- `action_type`: String
-- `details`: JSON (e.g., prompts used, routing decision made, LLM version)
+- `action_type`: Enum (`policy_ingested`, `case_submitted`, `rag_retrieval`, `llm_completion`, `checklist_override`, `case_claimed`, `case_decision`, `sla_escalation`) — constrained rather than free-text so override events (CHK009) and every other traced action are queryable and reportable, not just present as arbitrary strings
+- `details`: JSON (e.g., prompts used, routing decision made, LLM version; for `checklist_override` this MUST include `completeness_report_item_id`, `original_status`, and `new_status`)
 - `timestamp`: Timestamp

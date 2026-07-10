@@ -81,7 +81,7 @@ frontend/
 infrastructure/
 ├── qdrant/
 ├── minio/
-└── llm_serving/ (vLLM, TEI)
+└── llm_serving/ (Ollama, TEI)
 ```
 
 **Structure Decision**: Standard web application with isolated frontend/backend directories, plus an infrastructure directory to manage local services (Qdrant, MinIO, LLM serving).

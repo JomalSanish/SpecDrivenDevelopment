@@ -28,12 +28,12 @@
 
 **Purpose**: Admin policy ingestion and case document uploading.
 
-- [ ] T008 [US1] Create `Policy` and `PolicyRequirement` models in `backend/src/models/policy.py`, including the optional `sla_hours` field on `Policy` used by the SLA escalation task (T031)
-- [ ] T009 [US1] Implement Admin Policy Ingestion endpoint `POST /api/v1/admin/policies` (`backend/src/api/admin_routes.py`)
-- [ ] T010 [US1] Build Intake & Classification Agent to parse policy requirements (`backend/src/agents/intake_agent.py`)
-- [ ] T011 [US2] Create `Case` and `Document` models in `backend/src/models/case.py`, matching `data-model.md` exactly — including `assigned_queue` as an Enum (not free-text String) and the `entered_review_at` timestamp used by the SLA escalation task (T031)
-- [ ] T012 [US2] Implement Intake endpoint `POST /api/v1/intake/cases` (`backend/src/api/intake_routes.py`)
-- [ ] T013 [P] [US1] Implement React Intake Dashboard UI components (`frontend/src/pages/IntakeDashboard.tsx`)
+- [X] T008 [US1] Create `Policy` and `PolicyRequirement` models in `backend/src/models/policy.py`, including the optional `sla_hours` field on `Policy` used by the SLA escalation task (T031)
+- [X] T009 [US1] Implement Admin Policy Ingestion endpoint `POST /api/v1/admin/policies` (`backend/src/api/admin_routes.py`)
+- [X] T010 [US1] Build Intake & Classification Agent to parse policy requirements (`backend/src/agents/intake_agent.py`)
+- [X] T011 [US2] Create `Case` and `Document` models in `backend/src/models/case.py`, matching `data-model.md` exactly — including `assigned_queue` as an Enum (not free-text String) and the `entered_review_at` timestamp used by the SLA escalation task (T031)
+- [X] T012 [US2] Implement Intake endpoint `POST /api/v1/intake/cases` (`backend/src/api/intake_routes.py`)
+- [X] T013 [P] [US1] Implement React Intake Dashboard UI components (`frontend/src/pages/IntakeDashboard.tsx`)
 
 ---
 
@@ -69,6 +69,7 @@
 - [ ] T025 [P] [US3] Build React Nurse Review Workspace UI (`frontend/src/pages/NurseReviewWorkspace.tsx`)
 - [ ] T026 [P] [US3] Integrate in-app PDF Document Viewer into Nurse Workspace (`frontend/src/components/DocumentViewer.tsx`)
 - [ ] T027 [P] [US3] Implement override buttons for system-generated checklist items (`frontend/src/components/CompletenessChecklist.tsx`)
+- [ ] T027a [US3] Implement checklist override endpoint `POST /api/v1/review/cases/{case_id}/checklist/{item_id}/override`, writing `overridden_status`/`overridden_by_id`/`overridden_at` on `CompletenessReportItem` and an `AuditLog` row with `action_type: "checklist_override"` (resolves CHK009) (`backend/src/api/review_routes.py`)
 
 ---
 
@@ -81,6 +82,8 @@
 - [ ] T030 [US4] Implement database transaction logger wrapping all RAG and LLM prompts (`backend/src/core/logger.py`)
 - [ ] T031 [US5] Implement SLA escalation timer to re-route cases after timeout, computed from `Case.entered_review_at` against `Policy.sla_hours` (falling back to a global default if unset); on breach, set `assigned_queue` to `escalation_manager` and clear `claimed_by_id` so the case leaves the original nurse's queue (`backend/src/services/sla_service.py`)
 - [ ] T032 [P] [US4] Build Operations Dashboard UI to view audit logs (`frontend/src/pages/OperationsDashboard.tsx`)
+- [ ] T032a [US4] Implement `GET /api/v1/ops/queues` (queue statistics) and `GET /api/v1/ops/cases` (search/filter by member ID, CPT code) for the Operations Dashboard (`backend/src/api/ops_routes.py`)
+- [ ] T032b [US4] Implement `GET /api/v1/audit/cases/{case_id}` full read-only AuditLog trail endpoint (`backend/src/api/audit_routes.py`)
 
 ---
 

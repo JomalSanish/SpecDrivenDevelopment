@@ -11,9 +11,9 @@
 - **Secrets Scanning**: Automated scanning (e.g., TruffleHog) runs on every commit to ensure no connection strings or credentials have been leaked.
 
 ## Infrastructure as Code (IaC)
-- All services (Qdrant, MinIO, PostgreSQL, vLLM) are deployed using declarative IaC (Terraform or Helm Charts).
+- All services (Qdrant, MinIO, PostgreSQL, Ollama, TEI) are deployed using declarative IaC (Terraform or Helm Charts).
 - Database migrations are executed automatically via Alembic during the deployment phase, halting deployment if a migration fails.
 
 ## Zero Downtime Deployments
 - Frontend and Backend applications are deployed using rolling updates.
-- Infrastructure updates (Qdrant, LLM models) are blue/green deployed to ensure the RAG pipeline is never offline for in-flight cases.
+- Infrastructure updates (Qdrant, Ollama models) are blue/green deployed to ensure the RAG pipeline is never offline for in-flight cases.

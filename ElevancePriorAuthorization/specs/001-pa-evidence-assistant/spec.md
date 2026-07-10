@@ -106,12 +106,14 @@ A Compliance/Audit User views the full audit trail for a case, tracking policy i
 - **FR-010**: System MUST lock the policy version: in-flight cases are evaluated against the policy version active at the time of submission, regardless of subsequent updates.
 - **FR-011**: System MUST require a structured reason code in addition to free-text notes for the Reject action; the Accept action MUST be irreversible once submitted.
 - **FR-012**: System MUST automatically re-route cases to an Escalation/Manager queue if a nurse takes no action within the defined SLA.
+- **FR-013**: System MUST treat exact-match identifier fields (member ID, CPT/HCPCS, ICD-10) as requiring a sparse/keyword retrieval hit; a dense-only semantic match on an identifier-based requirement MUST be classified as "Unclear," never "Present," and the reasoning log must record that the item was a dense-hit/keyword-miss case.
+- **FR-014**: If any local inference or embedding endpoint (Ollama, TEI, Qdrant) becomes unreachable, the system MUST NOT fall back to any external/public API. Affected cases MUST be held in a queued/retry state with an admin-visible alert; they MUST NOT be silently dropped, stalled without notice, or auto-advanced past the completeness check.
 
 ### Compliance & Security Requirements (Constitution Mandated)
 
 - **SEC-001**: System MUST NOT use hidden booleans for routing (e.g., `human_review_required`). Must use explicit state fields (`review_status`, `assigned_queue`, `decided_by`, `decision_at`).
 - **SEC-002**: System MUST process all PHI and policy documents locally/on-prem. No external/public API calls for RAG, embedding, or inference.
-- **SEC-003**: System MUST utilize hybrid retrieval (combining dense semantic and sparse/keyword search like BM25).
+- **SEC-003**: System MUST utilize hybrid retrieval (combining dense semantic and sparse/keyword search like BM25); exact-match identifier fields (member ID, CPT/HCPCS, ICD-10) MUST resolve through the sparse/keyword path, not dense similarity alone (see FR-013).
 - **SEC-004**: System MUST cite specific source documents with stable UUIDs for all evidence claims.
 - **SEC-005**: System MUST log all agent actions, prompts, routing, confidence scores, and human decisions for auditability.
 - **SEC-006**: System MUST utilize a secrets manager abstraction layer for all credentials.

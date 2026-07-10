@@ -2,7 +2,7 @@
 
 **Prerequisites:**
 - Docker & Docker Compose installed (for MinIO, Qdrant, PostgreSQL, vLLM).
-- Sufficient local RAM/GPU for serving `bge-large-en-v1.5` and a local LLM via vLLM.
+- Sufficient local RAM/GPU for serving `bge-large-en-v1.5` (via TEI) and a local LLM via Ollama (llama3.1).
 
 **1. Spin up local infrastructure**
 ```bash
