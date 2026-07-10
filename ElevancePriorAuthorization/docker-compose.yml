@@ -1,0 +1,25 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"   # REST/gRPC — vector store with native hybrid (dense+sparse) search
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  embeddings:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
+    # swap the cpu- tag for a cuda- tag if you have a GPU box
+    command: --model-id BAAI/bge-large-en-v1.5
+    ports:
+      - "8080:80"     # POST /embed — no public API involved, model runs in-container
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434" # OpenAI-compatible endpoint at /v1/chat/completions
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  qdrant_data:
+  ollama_data:
