@@ -49,7 +49,7 @@ A provider or intake associate uploads case documents (clinical notes, imaging o
 
 ---
 
-### User Story 3 - Nurse SLA Escalation (Priority: P2)
+### User Story 5 - Nurse SLA Escalation (Priority: P2)
 
 A case assigned to the Nurse Review queue breaches its defined SLA threshold for action. The system automatically unassigns it from the original nurse (if claimed) and re-routes it to an Escalation/Manager queue.
 

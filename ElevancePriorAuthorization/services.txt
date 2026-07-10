@@ -1,5 +1,0 @@
-PS C:\Users\jomal\Files\Projects\TCS\SpecDrivenDevelopment\ElevancePriorAuthorization> docker compose ps
-NAME                                      IMAGE                                                      COMMAND                  SERVICE      CREATED          STATUS          PORTS
-elevancepriorauthorization-embeddings-1   ghcr.io/huggingface/text-embeddings-inference:cpu-latest   "text-embeddings-rou…"   embeddings   14 minutes ago   Up 14 minutes   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
-elevancepriorauthorization-ollama-1       ollama/ollama:latest                                       "/bin/ollama serve"      ollama       14 minutes ago   Up 14 minutes   0.0.0.0:11434->11434/tcp, [::]:11434->11434/tcp
-elevancepriorauthorization-qdrant-1       qdrant/qdrant:latest                                       "./entrypoint.sh"        qdrant       14 minutes ago   Up 14 minutes   0.0.0.0:6333->6333/tcp, [::]:6333->6333/tcp

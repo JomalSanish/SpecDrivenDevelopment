@@ -47,7 +47,7 @@ The system employs a five-agent runtime architecture coordinated over a shared c
 - Workflow/Audit & Deployment Readiness
 
 ### VII. Spec-Driven Development Discipline
-Every phase produces the full specification set (requirements, architecture, data, API, agent, RAG pipeline, UI, test, security & compliance, CI/CD & deployment) before implementation begins. Run `/speckit-analyze` after every implementation phase, not just once at the end.
+Every phase produces the full specification set (requirements, architecture, data, API, agent, RAG pipeline, UI, test, security & compliance, CI/CD & deployment) before implementation begins. Run `/speckit.analyze` after every implementation phase, not just once at the end.
 
 ## Governance
 

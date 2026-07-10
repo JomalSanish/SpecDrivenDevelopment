@@ -8,6 +8,7 @@
 - `service_line_code`: String
 - `version`: String
 - `active`: Boolean
+- `sla_hours`: Integer (Nullable — nurse review SLA duration for cases against this policy; falls back to a system-wide default when unset)
 - `created_at`: Timestamp
 
 ### PolicyRequirement
@@ -25,9 +26,10 @@
 - `service_type`: String
 - `requested_date`: Timestamp
 - `policy_id`: UUID (Foreign Key - locked at submission)
-- `review_status`: Enum (`pending_verification`, `in_nurse_review`, `accepted`, `rejected`, `returned_to_provider`)
-- `assigned_queue`: String
+- `review_status`: Enum (`pending_verification`, `in_nurse_review`, `accepted`, `returned_to_provider`) — no separate `rejected` value: a nurse's "Reject" action always means the case is sent back to the provider for more documentation, so it maps to `returned_to_provider`, never a terminal denial state
+- `assigned_queue`: Enum (`nurse_review`, `escalation_manager`, `medical_director_review`)
 - `claimed_by_id`: UUID (Nullable, Strict lock)
+- `entered_review_at`: Timestamp (Nullable — set when `review_status` first becomes `in_nurse_review`; SLA escalation is measured from this timestamp, not from `claimed_by_id`, so an unclaimed case can still breach SLA and escalate)
 - `decided_by_id`: UUID (Nullable)
 - `decision_reason`: String (Structured code + notes)
 - `decision_at`: Timestamp

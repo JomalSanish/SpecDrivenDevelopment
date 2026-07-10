@@ -21,4 +21,5 @@
   - Strict lock endpoint. Returns 409 if already claimed.
 - `POST /api/v1/review/cases/{case_id}/decision`
   - Payload: `{ "action": "Accept|Reject", "reason_code": "...", "notes": "..." }`
-  - Returns: `{ "status": "success", "new_state": "accepted|rejected" }`
+  - `action: "Reject"` maps internally to `review_status: "returned_to_provider"` — there is no separate `rejected` state; Reject always means the case goes back to the provider for more documentation.
+  - Returns: `{ "status": "success", "new_state": "accepted|returned_to_provider" }`
