@@ -14,13 +14,13 @@
 
 **Purpose**: Core infrastructure and abstracted credential management.
 
-- [ ] T001 Initialize FastAPI backend and React frontend projects
-- [ ] T002 [P] Setup PostgreSQL database schema using Alembic (`backend/src/models/core.py`)
-- [ ] T003 [P] Implement HashiCorp Vault secrets-manager abstraction (`backend/src/core/secrets.py`)
-- [ ] T004 Deploy local MinIO instance via docker-compose and configure bucket for isolated case documents (`infrastructure/minio/`)
-- [ ] T005 [FLAG: Network Egress Warning - MUST strictly use local models] Setup local `vLLM` stub for open-weight models (`infrastructure/llm_serving/vllm-compose.yml`)
-- [ ] T006 [FLAG: Network Egress Warning - MUST strictly use local models] Setup local `TEI/SentenceTransformers` endpoint for embeddings (`infrastructure/llm_serving/embeddings-compose.yml`)
-- [ ] T007 Deploy local Qdrant vector store (`infrastructure/qdrant/`)
+- [X] T001 Initialize FastAPI backend and React frontend projects
+- [X] T002 [P] Setup PostgreSQL database schema using Alembic (`backend/src/models/core.py`)
+- [X] T003 [P] Implement HashiCorp Vault secrets-manager abstraction (`backend/src/core/secrets.py`)
+- [X] T004 Deploy local MinIO instance via docker-compose and configure bucket for isolated case documents (`infrastructure/minio/`)
+- [x] T005 [FLAG: Network Egress Warning - MUST strictly use local models] Setup local `Ollama` service for open-weight LLM inference (`docker-compose.yml` — `ollama` service)
+- [X] T006 [FLAG: Network Egress Warning - MUST strictly use local models] Setup local `TEI/SentenceTransformers` endpoint for embeddings (`infrastructure/llm_serving/embeddings-compose.yml`)
+- [X] T007 Deploy local Qdrant vector store (`infrastructure/qdrant/`)
 
 ---
 

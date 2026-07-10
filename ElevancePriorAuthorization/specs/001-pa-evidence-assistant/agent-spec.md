@@ -16,7 +16,7 @@
 ## 3. Policy Reasoning & Gap Analysis Agent
 - **Inputs**: Retrieved evidence chunks, policy requirement rule.
 - **Outputs**: `CompletenessReportItem` (Present/Absent/Unclear) with reasoning and confidence score.
-- **Tools**: Local LLM inference (vLLM endpoint) with few-shot reasoning prompts.
+- **Tools**: Local LLM inference (Ollama endpoint) with few-shot reasoning prompts.
 - **Guardrails**: Enforces confidence thresholds: >80% (Present), 50-80% (Unclear), <50% (Absent).
 - **Escalation**: Any confidence between 50-80% defaults to Unclear, forcing human review of the gap.
 

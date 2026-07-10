@@ -6,7 +6,7 @@
 
 **1. Spin up local infrastructure**
 ```bash
-docker-compose up -d postgres minio qdrant vllm tei
+docker-compose up -d postgres minio qdrant ollama tei
 ```
 
 **2. Initialize Database and Secrets**

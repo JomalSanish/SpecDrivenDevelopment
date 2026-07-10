@@ -11,7 +11,8 @@ Since the architecture and technical stack were explicitly provided in the requi
 **Rationale**: Robust relational store for strict case/workflow state constraints, ensuring transactional integrity when recording human-in-the-loop decisions and SLA timers.
 
 ## RAG Infrastructure
-**Decision**: Qdrant (Self-hosted) + Local BAAI/bge-large-en-v1.5 Embeddings + vLLM
+**Decision**: Qdrant (Self-hosted) + Local BAAI/bge-large-en-v1.5 Embeddings (TEI) + Ollama (llama3.1)
+**Note**: vLLM was considered but dropped in favor of Ollama for local development — simpler setup, no separate stub needed, and sufficient throughput at current scale. Revisit if/when production load requires vLLM's higher-throughput batched serving.
 **Rationale**: Adheres to strict data-locality and confidentiality rules (no external API egress). Qdrant supports native hybrid search (dense + sparse BM25) and reciprocal rank fusion, which is mandated by the feature spec.
 
 ## Secrets Management

@@ -12,7 +12,7 @@ Build a payer-side web application (Elevance Prior Authorization Evidence Assist
 
 **Language/Version**: Python 3.11+ (Backend), Node.js/TypeScript (Frontend)
 
-**Primary Dependencies**: FastAPI, React, Qdrant (self-hosted), MinIO (self-hosted object storage), vLLM/Ollama (local LLM), TEI/SentenceTransformers (local embeddings)
+**Primary Dependencies**: FastAPI, React, Qdrant (self-hosted), MinIO (self-hosted object storage), Ollama (local LLM), TEI (local embeddings)
 
 **Storage**: PostgreSQL (case/workflow state)
 

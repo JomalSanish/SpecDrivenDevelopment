@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.env
+.env.*
+*.egg-info/
+dist/
+build/
+*.so
+*.out
+.pytest_cache/
+htmlcov/
+.coverage
+.mypy_cache/
+.ruff_cache/
+
+# Node.js / TypeScript
+node_modules/
+dist/
+build/
+*.log
+.pnp
+.pnp.js
+.yarn/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+*.iml
+
+# Docker
+.dockerignore
+
+# Alembic / DB
+alembic.ini.local
+*.sqlite
+*.db
+
+# Secrets — never commit credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+vault-token
+.vault-token
+secrets.json
+secrets.yaml
+
+# Infrastructure state
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Test artifacts
+coverage/
+test-results/
+junit*.xml

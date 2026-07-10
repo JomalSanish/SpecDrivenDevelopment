@@ -1,0 +1,13 @@
+# Qdrant server config (mounted read-only into the container)
+service:
+  http_port: 6333
+  grpc_port: 6334
+  # Strict: disable telemetry — no data sent externally
+  enable_cors: false
+
+storage:
+  # Isolate collections per case using payload filtering (done by application)
+  storage_path: /qdrant/storage
+
+# Disable telemetry reporting (Constitution §II — no external egress)
+telemetry_disabled: true

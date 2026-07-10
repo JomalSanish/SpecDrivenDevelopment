@@ -3,7 +3,7 @@
 ## Deployment Pipeline Overview
 - **Source Control**: GitHub Enterprise (or internal Git server).
 - **CI System**: GitHub Actions / GitLab CI runner operating within the private network.
-- **Deployment Target**: Kubernetes cluster (On-Prem/Private VPC) hosting FastAPI, React, Qdrant, MinIO, and vLLM deployments.
+- **Deployment Target**: Kubernetes cluster (On-Prem/Private VPC) hosting FastAPI, React, Qdrant, MinIO, and Ollama deployments.
 
 ## Automated Security & Compliance Gates
 - **Public API Network Blocking**: The CI environment and Production Kubernetes pods MUST be configured with egress rules that block outbound traffic to known public LLM API endpoints (e.g., `api.openai.com`, `api.anthropic.com`).

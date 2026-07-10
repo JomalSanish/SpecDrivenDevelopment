@@ -1,0 +1,31 @@
+# infrastructure/qdrant/qdrant-compose.yml
+# Self-hosted Qdrant vector database.
+# Constitution §II: all vector search runs locally — no cloud Qdrant.
+#
+# Usage:
+#   docker-compose -f infrastructure/qdrant/qdrant-compose.yml up -d
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.9.4
+    container_name: pa_qdrant
+    ports:
+      - "6333:6333"   # HTTP / REST API
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+      - ./config.yaml:/qdrant/config/production.yaml:ro
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: "6333"
+      QDRANT__SERVICE__GRPC_PORT: "6334"
+      QDRANT__LOG_LEVEL: INFO
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:6333/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
