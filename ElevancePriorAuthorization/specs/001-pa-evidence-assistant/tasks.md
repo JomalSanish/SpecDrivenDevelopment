@@ -63,13 +63,13 @@
 
 **Purpose**: Human-in-the-loop application interface.
 
-- [ ] T022 [US3] Implement `GET /api/v1/review/cases` and `GET /api/v1/review/cases/{case_id}` endpoints (`backend/src/api/review_routes.py`)
-- [ ] T023 [US3] Implement strict locking endpoint `POST /api/v1/review/cases/{case_id}/claim` using an atomic conditional update (`UPDATE cases SET claimed_by_id = :nurse_id WHERE id = :case_id AND claimed_by_id IS NULL`, rejecting the claim with a 409 Conflict if rows-affected == 0) — not a read-then-write check, to avoid a race between two nurses claiming the same case (`backend/src/api/review_routes.py`)
-- [ ] T024 [US3] Implement Nurse decision endpoint `POST /api/v1/review/cases/{case_id}/decision` ensuring structured reason codes; maps the nurse-facing `action` field (`Accept`|`Reject`) to `review_status` values `accepted`|`returned_to_provider` respectively — there is no separate `rejected` state, since Reject always means "sent back to the provider for more documentation," never a terminal denial; reject with 403 Forbidden if the requesting nurse's ID does not match `claimed_by_id` on the case (no claim, or claimed by someone else), so a decision can only be recorded by the nurse currently holding the lock from T023 (`backend/src/api/review_routes.py`)
-- [ ] T025 [P] [US3] Build React Nurse Review Workspace UI (`frontend/src/pages/NurseReviewWorkspace.tsx`)
-- [ ] T026 [P] [US3] Integrate in-app PDF Document Viewer into Nurse Workspace (`frontend/src/components/DocumentViewer.tsx`)
-- [ ] T027 [P] [US3] Implement override buttons for system-generated checklist items (`frontend/src/components/CompletenessChecklist.tsx`)
-- [ ] T027a [US3] Implement checklist override endpoint `POST /api/v1/review/cases/{case_id}/checklist/{item_id}/override`, writing `overridden_status`/`overridden_by_id`/`overridden_at` on `CompletenessReportItem` and an `AuditLog` row with `action_type: "checklist_override"` (resolves CHK009) (`backend/src/api/review_routes.py`)
+- [X] T022 [US3] Implement `GET /api/v1/review/cases` and `GET /api/v1/review/cases/{case_id}` endpoints (`backend/src/api/review_routes.py`)
+- [X] T023 [US3] Implement strict locking endpoint `POST /api/v1/review/cases/{case_id}/claim` using an atomic conditional update (`UPDATE cases SET claimed_by_id = :nurse_id WHERE id = :case_id AND claimed_by_id IS NULL`, rejecting the claim with a 409 Conflict if rows-affected == 0) — not a read-then-write check, to avoid a race between two nurses claiming the same case (`backend/src/api/review_routes.py`)
+- [X] T024 [US3] Implement Nurse decision endpoint `POST /api/v1/review/cases/{case_id}/decision` ensuring structured reason codes; maps the nurse-facing `action` field (`Accept`|`Reject`) to `review_status` values `accepted`|`returned_to_provider` respectively — there is no separate `rejected` state, since Reject always means "sent back to the provider for more documentation," never a terminal denial; reject with 403 Forbidden if the requesting nurse's ID does not match `claimed_by_id` on the case (no claim, or claimed by someone else), so a decision can only be recorded by the nurse currently holding the lock from T023 (`backend/src/api/review_routes.py`)
+- [X] T025 [P] [US3] Build React Nurse Review Workspace UI (`frontend/src/pages/NurseReviewWorkspace.tsx`)
+- [X] T026 [P] [US3] Integrate in-app PDF Document Viewer into Nurse Workspace (`frontend/src/components/DocumentViewer.tsx`)
+- [X] T027 [P] [US3] Implement override buttons for system-generated checklist items (`frontend/src/components/CompletenessChecklist.tsx`)
+- [X] T027a [US3] Implement checklist override endpoint `POST /api/v1/review/cases/{case_id}/checklist/{item_id}/override`, writing `overridden_status`/`overridden_by_id`/`overridden_at` on `CompletenessReportItem` and an `AuditLog` row with `action_type: "checklist_override"` (resolves CHK009) (`backend/src/api/review_routes.py`)
 
 ---
 

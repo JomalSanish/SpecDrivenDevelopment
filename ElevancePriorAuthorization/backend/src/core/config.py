@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # Local LLM endpoint (Ollama / vLLM)
     LLM_ENDPOINT: str = "http://localhost:11434"
-    LLM_MODEL: str = "llama3"
+    LLM_MODEL: str = "llama3.1"
 
     model_config = SettingsConfigDict(
         env_file=".env.local",

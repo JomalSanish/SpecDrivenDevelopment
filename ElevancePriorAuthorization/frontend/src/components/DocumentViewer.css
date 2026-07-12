@@ -1,0 +1,229 @@
+/* DocumentViewer.css — Nurse Review Workspace PDF panel */
+
+.doc-viewer {
+  display: flex;
+  flex-direction: column;
+  background: #111827;
+  border: 1px solid #1e2d45;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 100%;
+  min-height: 520px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.doc-viewer--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-viewer__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #475569;
+  padding: 2rem;
+  text-align: center;
+}
+
+.doc-viewer__empty-state p {
+  font-size: 0.9rem;
+}
+
+/* ─── Tabs ─── */
+.doc-viewer__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #1e2d45;
+  overflow-x: auto;
+  background: #0a0f1e;
+  scrollbar-width: thin;
+  scrollbar-color: #1e2d45 transparent;
+}
+
+.doc-viewer__tab {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 180px;
+}
+
+.doc-viewer__tab:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.doc-viewer__tab--active {
+  color: #f1f5f9;
+  border-bottom-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.doc-viewer__tab-icon { font-size: 0.9rem; flex-shrink: 0; }
+
+.doc-viewer__tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Toolbar ─── */
+.doc-viewer__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid #1e2d45;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.doc-viewer__doc-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.doc-viewer__doc-badge {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 999px;
+  color: #93c5fd;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.55rem;
+  white-space: nowrap;
+}
+
+.doc-viewer__doc-path {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.doc-viewer__page-indicator {
+  font-size: 0.75rem;
+  color: #14b8a6;
+  font-weight: 600;
+  animation: pulse-cite 1.5s ease infinite;
+}
+
+@keyframes pulse-cite {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.doc-viewer__zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.doc-viewer__zoom-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #1e2d45;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  height: 28px;
+  width: 28px;
+  line-height: 1;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-viewer__zoom-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  color: #f1f5f9;
+}
+
+.doc-viewer__zoom-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.doc-viewer__zoom-label {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: 500;
+  min-width: 38px;
+  text-align: center;
+}
+
+/* ─── Frame wrapper ─── */
+.doc-viewer__frame-wrap {
+  flex: 1;
+  position: relative;
+  background: #1a1a2e;
+  overflow: hidden;
+}
+
+.doc-viewer__iframe {
+  width: calc(100% / var(--zoom, 1));
+  height: calc(100% / var(--zoom, 1));
+  transform: scale(var(--zoom, 1));
+  transform-origin: top left;
+  border: none;
+  display: block;
+}
+
+.doc-viewer__iframe--hidden { visibility: hidden; }
+
+/* ─── Loading / Error ─── */
+.doc-viewer__loading,
+.doc-viewer__error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #475569;
+  font-size: 0.88rem;
+}
+
+.doc-viewer__error { color: #ef4444; }
+
+.doc-viewer__error-hint {
+  font-size: 0.78rem;
+  color: #475569;
+  max-width: 280px;
+  text-align: center;
+}
+
+.doc-viewer__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: dv-spin 0.7s linear infinite;
+}
+
+@keyframes dv-spin { to { transform: rotate(360deg); } }

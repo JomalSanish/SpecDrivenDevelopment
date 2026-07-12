@@ -142,7 +142,7 @@ class IntakeClassificationAgent:
 
     def __init__(self) -> None:
         self._endpoint = (get_secret("LLM_ENDPOINT") or "http://localhost:11434").rstrip("/")
-        self._model = get_secret("LLM_MODEL") or "llama3"
+        self._model = get_secret("LLM_MODEL") or "llama3.1"
         self._chat_url = f"{self._endpoint}/v1/chat/completions"
         logger.info(
             "IntakeClassificationAgent initialised: endpoint=%s model=%s",

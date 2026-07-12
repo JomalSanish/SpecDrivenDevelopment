@@ -61,7 +61,6 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("matching_criteria", JSONB(), nullable=True),
     )
-    op.create_index("ix_policy_requirements_policy_id", "policy_requirements", ["policy_id"])
 
     # --- cases ---
     op.create_table(
@@ -117,7 +116,6 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
         ),
     )
-    op.create_index("ix_cases_policy_id", "cases", ["policy_id"])
 
     # --- documents ---
     op.create_table(
@@ -143,7 +141,6 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
         ),
     )
-    op.create_index("ix_documents_case_id", "documents", ["case_id"])
 
 
 def downgrade() -> None:
