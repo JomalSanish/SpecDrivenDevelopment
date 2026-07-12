@@ -41,10 +41,10 @@
 
 **Purpose**: Indexing and Retrieval engine.
 
-- [ ] T014 [US2] Create Qdrant indexing service with strictly partitioned `case_id` payload filters (`backend/src/services/qdrant_service.py`)
-- [ ] T015 [US2] Implement semantic sentence chunking (512 tokens, 50 token overlap) (`backend/src/services/chunking_service.py`)
-- [ ] T016 [US2] Build Evidence Retrieval (RAG) Agent (`backend/src/agents/retrieval_agent.py`)
-- [ ] T017 [US2] Implement Reciprocal Rank Fusion (RRF) for dense + sparse BM25 vectors (`backend/src/services/fusion_service.py`)
+- [X] T014 [US2] Create Qdrant indexing service with strictly partitioned `case_id` payload filters (`backend/src/services/qdrant_service.py`)
+- [X] T015 [US2] Implement semantic sentence chunking (512 tokens, 50 token overlap) (`backend/src/services/chunking_service.py`)
+- [X] T016 [US2] Build Evidence Retrieval (RAG) Agent (`backend/src/agents/retrieval_agent.py`)
+- [X] T017 [US2] Implement Reciprocal Rank Fusion (RRF) for dense + sparse BM25 vectors (`backend/src/services/fusion_service.py`)
 
 ---
 
