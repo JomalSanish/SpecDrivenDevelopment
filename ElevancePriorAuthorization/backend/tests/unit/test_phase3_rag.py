@@ -55,7 +55,7 @@ class TestChunkingService:
         from src.services.chunking_service import chunk_text
 
         text = "This is a sentence. And another sentence. A third one here."
-        chunks = chunk_text(
+        chunks, _ = chunk_text(
             text=text,
             case_id=str(uuid.uuid4()),
             document_id=str(uuid.uuid4()),
@@ -72,15 +72,16 @@ class TestChunkingService:
     def test_chunk_text_empty_returns_empty_list(self):
         from src.services.chunking_service import chunk_text
 
-        chunks = chunk_text("   ", case_id="c1", document_id="d1")
+        chunks, tail = chunk_text("   ", case_id="c1", document_id="d1")
         assert chunks == []
+        assert tail == ""
 
     def test_chunk_metadata_stamped_correctly(self):
         from src.services.chunking_service import chunk_text
 
         case_id = str(uuid.uuid4())
         doc_id = str(uuid.uuid4())
-        chunks = chunk_text(
+        chunks, _ = chunk_text(
             text="Alpha. Beta. Gamma.",
             case_id=case_id,
             document_id=doc_id,
@@ -121,7 +122,7 @@ class TestChunkingService:
         from src.services.chunking_service import chunk_text, CHUNK_SIZE_TOKENS, _CHARS_PER_TOKEN
 
         long_sentence = "word " * (CHUNK_SIZE_TOKENS * 2)
-        chunks = chunk_text(
+        chunks, _ = chunk_text(
             text=long_sentence,
             case_id=str(uuid.uuid4()),
             document_id=str(uuid.uuid4()),
@@ -134,9 +135,104 @@ class TestChunkingService:
         from src.services.chunking_service import chunk_text
 
         text = "Clinical notes from last 6 months. Physical therapy records. Imaging results."
-        chunks = chunk_text(text=text, case_id="c1", document_id="d1")
+        chunks, _ = chunk_text(text=text, case_id="c1", document_id="d1")
         for c in chunks:
             assert c.token_count > 0
+
+    def test_overlap_carries_across_page_boundary(self):
+        """
+        rag-pipeline.md §Chunking Strategy: overlap must preserve context
+        ACROSS page breaks, not just within a single page. A sentence split
+        across two pages should have its tail carried into the next page's
+        first chunk, not silently dropped.
+        """
+        from src.services.chunking_service import chunk_pages
+
+        page_1 = "Patient reports six weeks of conservative therapy. " * 40
+        page_2 = "Continuing the therapy course into month two. " * 40
+
+        chunks = chunk_pages(
+            pages=[page_1, page_2],
+            case_id=str(uuid.uuid4()),
+            document_id=str(uuid.uuid4()),
+        )
+
+        page_0_chunks = [c for c in chunks if c.page_number == 0]
+        page_1_chunks = [c for c in chunks if c.page_number == 1]
+        assert page_0_chunks and page_1_chunks
+
+        last_text_of_page_0 = page_0_chunks[-1].text
+        first_text_of_page_1 = page_1_chunks[0].text
+
+        assert first_text_of_page_1 != page_2.strip(), (
+            "Expected page 2's first chunk to be seeded with overlap text "
+            "from page 1's last chunk, but it contains only page 2's own text."
+        )
+        tail_fragment = last_text_of_page_0[-30:].strip()
+        assert any(
+            word in first_text_of_page_1 for word in tail_fragment.split() if len(word) > 3
+        ), "Expected some trailing words from page 1 to carry into page 2's first chunk"
+
+
+# ===========================================================================
+# T014/T015 — Stable hashing regression (cross-process, catches PYTHONHASHSEED bugs)
+# ===========================================================================
+
+
+class TestStableTokeniserHash:
+    """
+    Regression test for the _bm25_tokenise() vocabulary hash.
+
+    This MUST be stable across separate process invocations — Python's
+    built-in hash() is randomised per-process for str objects (PYTHONHASHSEED),
+    so a same-process test alone would NOT catch a regression back to hash().
+    We run tokenisation in a fresh subprocess twice and compare output.
+    """
+
+    def test_tokeniser_is_stable_across_process_restarts(self):
+        import subprocess
+        import sys as _sys
+        import textwrap
+
+        backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+        repo_root = os.path.abspath(os.path.join(backend_dir, ".."))
+
+        script = textwrap.dedent(
+            f"""
+            import sys
+            sys.path.insert(0, {backend_dir!r})
+            from src.services.qdrant_service import _bm25_tokenise
+            indices, values = _bm25_tokenise("clinical notes imaging MRI CPT12345")
+            print(indices)
+            """
+        ).strip()
+
+        env = os.environ.copy()
+        env.pop("PYTHONHASHSEED", None)  # ensure default (random) seeding
+
+        run_1 = subprocess.run(
+            [_sys.executable, "-c", script],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        run_2 = subprocess.run(
+            [_sys.executable, "-c", script],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+        assert run_1.returncode == 0, run_1.stderr
+        assert run_2.returncode == 0, run_2.stderr
+        assert run_1.stdout == run_2.stdout, (
+            "Tokeniser produced different vocabulary indices across two separate "
+            "process runs — this means sparse vectors indexed before a restart "
+            "become unmatchable after a restart. Check that _bm25_tokenise uses "
+            "a stable hash (e.g. hashlib.md5), not Python's built-in hash()."
+        )
 
 
 # ===========================================================================

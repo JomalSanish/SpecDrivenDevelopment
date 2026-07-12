@@ -85,23 +85,36 @@ def _split_into_sentences(text: str) -> list[str]:
     return [s.strip() for s in raw if s.strip()]
 
 
-def _build_chunks(sentences: list[str]) -> list[str]:
+def _build_chunks(
+    sentences: list[str],
+    carry_over: str = "",
+) -> tuple[list[str], str]:
     """
     Pack *sentences* into overlapping chunks of ~CHUNK_SIZE_TOKENS tokens
     with OVERLAP_TOKENS of carry-over context.
 
+    *carry_over* is optional leading text (e.g. the tail of the previous
+    page's last chunk) seeded into the first chunk, so overlap is preserved
+    ACROSS page boundaries, not just within a single page's sentence list.
+
     Algorithm:
-    1. Accumulate sentences into the current chunk buffer.
-    2. When the buffer exceeds CHUNK_SIZE_TOKENS, flush the chunk.
-    3. Seed the next chunk with the last OVERLAP_TOKENS worth of text from
+    1. Seed the buffer with *carry_over*, if any.
+    2. Accumulate sentences into the current chunk buffer.
+    3. When the buffer exceeds CHUNK_SIZE_TOKENS, flush the chunk.
+    4. Seed the next chunk with the last OVERLAP_TOKENS worth of text from
        the flushed chunk (overlap window).
+
+    Returns
+    -------
+    (chunks, tail_overlap) — the list of chunk strings, plus the trailing
+    overlap text that should be carried into the NEXT page's first chunk.
     """
     if not sentences:
-        return []
+        return ([], carry_over if carry_over else "")
 
     chunks: list[str] = []
-    current_sentences: list[str] = []
-    current_tokens = 0
+    current_sentences: list[str] = [carry_over] if carry_over else []
+    current_tokens = _estimate_tokens(carry_over) if carry_over else 0
 
     for sentence in sentences:
         sent_tokens = _estimate_tokens(sentence)
@@ -132,10 +145,13 @@ def _build_chunks(sentences: list[str]) -> list[str]:
         current_tokens += sent_tokens
 
     # Flush final chunk
+    tail_overlap = ""
     if current_sentences:
         chunks.append(" ".join(current_sentences))
+        # Compute what should carry into the next page's first chunk
+        tail_overlap = _tail_by_tokens(current_sentences, OVERLAP_TOKENS)
 
-    return chunks
+    return (chunks, tail_overlap)
 
 
 def _hard_split(text: str) -> list[str]:
@@ -173,7 +189,8 @@ def chunk_text(
     case_id: str,
     document_id: str,
     page_number: int = 0,
-) -> list[TextChunk]:
+    carry_over: str = "",
+) -> tuple[list[TextChunk], str]:
     """
     Split *text* into overlapping semantic chunks and attach required metadata.
 
@@ -183,18 +200,22 @@ def chunk_text(
     case_id     : UUID of the PA case — stamped on every chunk.
     document_id : UUID of the source Document row — stamped on every chunk.
     page_number : 0-based page number the text came from.
+    carry_over  : Trailing overlap text from the previous page's last chunk,
+                  seeded into this page's first chunk so overlap is preserved
+                  across page boundaries (rag-pipeline.md §Chunking Strategy).
 
     Returns
     -------
-    List of TextChunk objects, one per chunk.  Returns empty list for blank
-    or whitespace-only input.
+    (chunks, tail_overlap) — list of TextChunk objects (empty for blank or
+    whitespace-only input), plus the trailing overlap text to pass as
+    *carry_over* into the NEXT page's chunk_text() call.
     """
     text = text.strip()
     if not text:
-        return []
+        return ([], carry_over)
 
     sentences = _split_into_sentences(text)
-    raw_chunks = _build_chunks(sentences)
+    raw_chunks, tail_overlap = _build_chunks(sentences, carry_over=carry_over)
 
     result: list[TextChunk] = []
     for raw in raw_chunks:
@@ -217,7 +238,7 @@ def chunk_text(
         page_number,
         len(result),
     )
-    return result
+    return (result, tail_overlap)
 
 
 def chunk_pages(
@@ -232,15 +253,23 @@ def chunk_pages(
     Chunks from different pages share the same case_id and document_id
     but carry the correct page_number.
 
+    Overlap is threaded ACROSS page boundaries: the tail of the last chunk
+    on page N is carried into the first chunk of page N+1, so a sentence or
+    table that spans a page break isn't silently dropped from context
+    (rag-pipeline.md §Chunking Strategy — "Overlap ... to preserve context
+    across page breaks").
+
     Returns all chunks across all pages in page order.
     """
     all_chunks: list[TextChunk] = []
+    carry_over = ""
     for page_idx, page_text in enumerate(pages):
-        page_chunks = chunk_text(
+        page_chunks, carry_over = chunk_text(
             text=page_text,
             case_id=case_id,
             document_id=document_id,
             page_number=page_idx,
+            carry_over=carry_over,
         )
         all_chunks.extend(page_chunks)
 

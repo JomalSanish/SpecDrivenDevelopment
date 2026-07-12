@@ -52,10 +52,10 @@
 
 **Purpose**: Agentic evaluation of required documents against uploaded evidence.
 
-- [ ] T018 [US2] Create `CompletenessReportItem` model in `backend/src/models/completeness.py`
-- [ ] T019 [US2] Build Policy Reasoning & Gap Analysis Agent (`backend/src/agents/reasoning_agent.py`)
-- [ ] T020 [US2] Enforce confidence threshold guardrails (>80% Present, 50-80% Unclear, <50% Absent) in `reasoning_agent.py`
-- [ ] T021 [US2] Build Reviewer Summary & Communication Agent to draft rejection notes (`backend/src/agents/summary_agent.py`)
+- [X] T018 [US2] Create `CompletenessReportItem` model in `backend/src/models/completeness.py`
+- [X] T019 [US2] Build Policy Reasoning & Gap Analysis Agent (`backend/src/agents/reasoning_agent.py`)
+- [X] T020 [US2] Enforce confidence threshold guardrails (>80% Present, 50-80% Unclear, <50% Absent) in `reasoning_agent.py`
+- [X] T021 [US2] Build Reviewer Summary & Communication Agent to draft rejection notes (`backend/src/agents/summary_agent.py`)
 
 ---
 

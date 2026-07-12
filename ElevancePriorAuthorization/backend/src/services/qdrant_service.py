@@ -195,10 +195,18 @@ def _bm25_tokenise(text: str) -> tuple[list[int], list[float]]:
     Convert *text* to a sparse bag-of-words representation compatible with
     Qdrant's sparse vector format.
 
-    Uses a simple hash-based vocabulary:  token → int index (collision-safe
-    for our vocabulary size).  BM25 term frequencies are approximated by raw
-    term frequency (TF); full IDF weighting is delegated to Qdrant's built-in
-    sparse index.
+    Uses a stable hash-based vocabulary: token → int index. IMPORTANT: this
+    must use a hash function that is stable ACROSS process restarts, not
+    Python's built-in hash(), which is randomised per-process (PYTHONHASHSEED)
+    for str objects since Python 3.3. Using hash() here would silently
+    invalidate every previously-indexed sparse vector on every container
+    restart, with no error — the sparse/BM25 half of hybrid retrieval would
+    quietly stop matching anything indexed before the restart.
+
+    BM25 term frequencies are approximated by raw term frequency (TF); full
+    IDF weighting is delegated to Qdrant's built-in sparse index. (Note: this
+    is TF only, not a full BM25 formula — Qdrant's sparse index does not
+    apply BM25-specific document-length normalisation on its own.)
 
     Returns:
         indices — sorted list of unique token hash indices
@@ -206,11 +214,18 @@ def _bm25_tokenise(text: str) -> tuple[list[int], list[float]]:
     """
     import re
     import math
+    import hashlib
+
+    def _stable_hash(token: str) -> int:
+        """Process-independent hash — same token always maps to the same
+        index, regardless of PYTHONHASHSEED or process restarts."""
+        digest = hashlib.md5(token.encode("utf-8")).hexdigest()
+        return int(digest, 16) % (2**20)  # 1M-bucket vocabulary
 
     tokens = re.findall(r"\b[a-zA-Z0-9]+\b", text.lower())
     tf: dict[int, int] = {}
     for token in tokens:
-        idx = hash(token) % (2**20)  # 1M-bucket vocabulary
+        idx = _stable_hash(token)
         tf[idx] = tf.get(idx, 0) + 1
 
     total = sum(tf.values()) or 1
