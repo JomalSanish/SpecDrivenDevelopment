@@ -77,13 +77,13 @@
 
 **Purpose**: End-to-end routing and compliance tracing.
 
-- [ ] T028 [US4] Create `AuditLog` model in `backend/src/models/audit.py`
-- [ ] T029 [US4] Build Workflow/Audit & Deployment Readiness Agent (`backend/src/agents/workflow_agent.py`)
-- [ ] T030 [US4] Implement database transaction logger wrapping all RAG and LLM prompts (`backend/src/core/logger.py`)
-- [ ] T031 [US5] Implement SLA escalation timer to re-route cases after timeout, computed from `Case.entered_review_at` against `Policy.sla_hours` (falling back to a global default if unset); on breach, set `assigned_queue` to `escalation_manager` and clear `claimed_by_id` so the case leaves the original nurse's queue (`backend/src/services/sla_service.py`)
-- [ ] T032 [P] [US4] Build Operations Dashboard UI to view audit logs (`frontend/src/pages/OperationsDashboard.tsx`)
-- [ ] T032a [US4] Implement `GET /api/v1/ops/queues` (queue statistics) and `GET /api/v1/ops/cases` (search/filter by member ID, CPT code) for the Operations Dashboard (`backend/src/api/ops_routes.py`)
-- [ ] T032b [US4] Implement `GET /api/v1/audit/cases/{case_id}` full read-only AuditLog trail endpoint (`backend/src/api/audit_routes.py`)
+- [X] T028 [US4] Create `AuditLog` model in `backend/src/models/audit.py`
+- [X] T029 [US4] Build Workflow/Audit & Deployment Readiness Agent (`backend/src/agents/workflow_agent.py`)
+- [X] T030 [US4] Implement database transaction logger wrapping all RAG and LLM prompts (`backend/src/core/logger.py`)
+- [X] T031 [US5] Implement SLA escalation timer to re-route cases after timeout, computed from `Case.entered_review_at` against `Policy.sla_hours` (falling back to a global default if unset); on breach, set `assigned_queue` to `escalation_manager` and clear `claimed_by_id` so the case leaves the original nurse's queue (`backend/src/services/sla_service.py`)
+- [X] T032 [P] [US4] Build Operations Dashboard UI to view audit logs (`frontend/src/pages/OperationsDashboard.tsx`)
+- [X] T032a [US4] Implement `GET /api/v1/ops/queues` (queue statistics) and `GET /api/v1/ops/cases` (search/filter by member ID, CPT code) for the Operations Dashboard (`backend/src/api/ops_routes.py`)
+- [X] T032b [US4] Implement `GET /api/v1/audit/cases/{case_id}` full read-only AuditLog trail endpoint (`backend/src/api/audit_routes.py`)
 
 ---
 
