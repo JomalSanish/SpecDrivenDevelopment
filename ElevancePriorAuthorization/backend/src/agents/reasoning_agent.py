@@ -201,11 +201,15 @@ def apply_confidence_guardrails(
     confidence: float,
     is_identifier_based: bool,
     keyword_miss_count: int,
+    parse_failed: bool = False,
 ) -> tuple[CompletenessStatus, bool]:
     """
     Map a raw confidence score to a CompletenessStatus, enforcing all guardrails.
 
     T020 Guardrails:
+      0. LLM response parse failure → force Unclear (NEVER Absent — a technical
+         failure to parse the model's output is not evidence of absence, and
+         must not be presented to the nurse as if it were).
       1. confidence > 0.80          → Present
       2. 0.50 ≤ confidence ≤ 0.80   → Unclear (forces human review)
       3. confidence < 0.50          → Absent
@@ -214,6 +218,15 @@ def apply_confidence_guardrails(
     Returns:
       (CompletenessStatus, keyword_miss_forced: bool)
     """
+    # Guardrail 0: parse failure → force Unclear, bypass numeric thresholds entirely
+    if parse_failed:
+        logger.warning(
+            "Guardrail triggered: LLM response parse failure — forcing Unclear "
+            "(NOT Absent) regardless of raw confidence=%.3f",
+            confidence,
+        )
+        return CompletenessStatus.Unclear, False
+
     # Clamp to [0.0, 1.0]
     confidence = max(0.0, min(1.0, float(confidence)))
 
@@ -241,12 +254,17 @@ def apply_confidence_guardrails(
 # ---------------------------------------------------------------------------
 
 
-def _parse_llm_response(raw: str, requirement_id: str) -> tuple[float, str]:
+def _parse_llm_response(raw: str, requirement_id: str) -> tuple[float, str, bool]:
     """
-    Parse the LLM JSON response into (confidence, verdict_str).
+    Parse the LLM JSON response into (confidence, verdict_str, parse_failed).
 
-    Falls back to (0.0, "Unclear") on any parse error — erring on the side
-    of caution rather than producing a spurious Present verdict.
+    On any parse error, returns parse_failed=True. Callers MUST treat
+    parse_failed as an explicit override to Unclear — do NOT rely on the
+    numeric confidence value alone, since 0.0 falls below THRESHOLD_UNCLEAR
+    and would otherwise be (mis)classified as Absent, contradicting the
+    fail-safe intent here: a parsing/technical failure is NOT the same as
+    "evidence conclusively absent," and must not be presented to the nurse
+    as if it were.
     """
     try:
         # Strip potential markdown fences the model might add
@@ -258,16 +276,16 @@ def _parse_llm_response(raw: str, requirement_id: str) -> tuple[float, str]:
         data = json.loads(text)
         confidence = float(data.get("confidence", 0.0))
         verdict = str(data.get("verdict", "Unclear"))
-        return confidence, verdict
+        return confidence, verdict, False
 
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
         logger.warning(
             "ReasoningAgent: failed to parse LLM response for req_id=%s: %s — "
-            "defaulting to confidence=0.0, verdict=Unclear",
+            "forcing Unclear (parse_failed=True), NOT Absent",
             requirement_id,
             exc,
         )
-        return 0.0, "Unclear"
+        return 0.0, "Unclear", True
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +322,7 @@ class PolicyReasoningAgent:
         self._llm_model = (
             llm_model
             or get_secret("LLM_MODEL")
-            or "llama3"
+            or "llama3.1"
         )
         self._http_timeout = http_timeout
 
@@ -384,13 +402,14 @@ class PolicyReasoningAgent:
         )
 
         raw_response = await self._call_llm(prompt, ctx.requirement_id)
-        confidence, _ = _parse_llm_response(raw_response, ctx.requirement_id)
+        confidence, _, parse_failed = _parse_llm_response(raw_response, ctx.requirement_id)
 
         # T020 guardrails
         status, keyword_miss_forced = apply_confidence_guardrails(
             confidence=confidence,
             is_identifier_based=ctx.is_identifier_based,
             keyword_miss_count=ctx.keyword_miss_count,
+            parse_failed=parse_failed,
         )
 
         # Best-match citation (top-scored chunk that is not keyword_miss, else top overall)
@@ -410,6 +429,7 @@ class PolicyReasoningAgent:
                 "prompt_length": len(prompt),
                 "llm_raw_response": raw_response[:2000],  # truncate for storage
                 "parsed_confidence": confidence,
+                "parse_failed": parse_failed,
                 "applied_status": status.value,
                 "keyword_miss_forced": keyword_miss_forced,
                 "evidence_chunk_count": len(ctx.evidence_chunks),

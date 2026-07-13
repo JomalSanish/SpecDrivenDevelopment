@@ -172,6 +172,43 @@ class TestConfidenceGuardrails:
         from src.models.completeness import CompletenessStatus
         assert status == CompletenessStatus.Unclear
 
+    def test_parse_failure_forces_unclear_not_absent(self):
+        """
+        Regression test: a parse_failed=True must force Unclear, NEVER Absent —
+        even though parse failures internally carry confidence=0.0, which
+        would otherwise numerically map to Absent. A technical failure to
+        parse the LLM's response is not evidence that the requirement's
+        evidence is absent, and must not be presented to the nurse as if it
+        were a confident "no evidence found" finding.
+        """
+        from src.models.completeness import CompletenessStatus
+        status, forced = self.apply(
+            0.0, is_identifier_based=False, keyword_miss_count=0, parse_failed=True
+        )
+        assert status == CompletenessStatus.Unclear
+        assert status != CompletenessStatus.Absent
+
+    def test_parse_llm_response_sets_parse_failed_on_malformed_json(self):
+        """_parse_llm_response must report parse_failed=True on bad JSON,
+        not silently return a confidence value that (mis)maps to Absent."""
+        from src.agents.reasoning_agent import _parse_llm_response
+
+        confidence, verdict, parse_failed = _parse_llm_response(
+            "this is not valid json {{{", requirement_id="req-test"
+        )
+        assert parse_failed is True
+        assert verdict == "Unclear"
+
+    def test_parse_llm_response_parse_failed_false_on_valid_json(self):
+        from src.agents.reasoning_agent import _parse_llm_response
+
+        confidence, verdict, parse_failed = _parse_llm_response(
+            '{"confidence": 0.9, "verdict": "Present", "reasoning": "ok"}',
+            requirement_id="req-test",
+        )
+        assert parse_failed is False
+        assert confidence == 0.9
+
     def test_confidence_below_lower_threshold_is_absent(self):
         status, forced = self.apply(0.49, is_identifier_based=False, keyword_miss_count=0)
         from src.models.completeness import CompletenessStatus
@@ -424,14 +461,21 @@ class TestPolicyReasoningAgent:
         assert "applied_status" in log_data
 
     @pytest.mark.asyncio
-    async def test_malformed_llm_response_defaults_to_absent(self):
-        """Graceful degradation: invalid JSON → confidence=0.0 → Absent."""
+    async def test_malformed_llm_response_forces_unclear_not_absent(self):
+        """
+        Graceful degradation: invalid JSON → parse_failed=True → Unclear.
+
+        This test previously asserted Absent, which was the bug: a parse
+        failure is a technical problem, not evidence that the requirement's
+        evidence is actually absent, and presenting it to the nurse as a
+        confident "Absent" finding was misleading. Fixed to require Unclear.
+        """
         from src.agents.reasoning_agent import PolicyReasoningAgent
         from src.models.completeness import CompletenessStatus
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="llama3.1",
         )
 
         with patch.object(agent, "_call_llm", new=AsyncMock(return_value="not valid json")):
@@ -442,8 +486,9 @@ class TestPolicyReasoningAgent:
             )
 
         r = result_set.results[0]
-        # Parse failure → confidence 0.0 → Absent
-        assert r.status == CompletenessStatus.Absent
+        # Parse failure → forced Unclear, NEVER Absent
+        assert r.status == CompletenessStatus.Unclear
+        assert r.status != CompletenessStatus.Absent
 
     @pytest.mark.asyncio
     async def test_multiple_requirements_all_assessed(self):

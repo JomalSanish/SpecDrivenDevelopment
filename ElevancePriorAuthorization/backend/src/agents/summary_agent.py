@@ -197,7 +197,7 @@ class ReviewerSummaryAgent:
         self._llm_model = (
             llm_model
             or get_secret("LLM_MODEL")
-            or "llama3"
+            or "llama3.1"
         )
         self._http_timeout = http_timeout
 

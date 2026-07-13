@@ -18,14 +18,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # --- Enums ---
+    # DROP-then-CREATE guards make this migration safely re-runnable after a
+    # partial failure (Postgres DDL is transactional per-statement-set, but a
+    # failure later in this same revision — e.g. the duplicate-index bug this
+    # migration used to have — can leave these enum types behind even though
+    # the tables that would use them got rolled back).
+    op.execute("DROP TYPE IF EXISTS review_status_enum")
     op.execute(
         "CREATE TYPE review_status_enum AS ENUM "
         "('pending_verification', 'in_nurse_review', 'accepted', 'returned_to_provider')"
     )
+    op.execute("DROP TYPE IF EXISTS assigned_queue_enum")
     op.execute(
         "CREATE TYPE assigned_queue_enum AS ENUM "
         "('nurse_review', 'escalation_manager', 'medical_director_review')"
     )
+    op.execute("DROP TYPE IF EXISTS document_type_enum")
     op.execute(
         "CREATE TYPE document_type_enum AS ENUM ('PDF', 'Scan', 'Fax')"
     )

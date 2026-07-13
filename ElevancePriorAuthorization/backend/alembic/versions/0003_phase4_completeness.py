@@ -25,10 +25,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # --- Enums ---
+    # DROP-then-CREATE guards make this migration safely re-runnable after a
+    # partial failure (Postgres DDL is transactional, but a failure partway
+    # through THIS revision can still leave enum types from an earlier failed
+    # attempt at this same revision — see the identical issue in 0002).
+    op.execute("DROP TYPE IF EXISTS completeness_status_enum")
     op.execute(
         "CREATE TYPE completeness_status_enum AS ENUM ('Present', 'Absent', 'Unclear')"
     )
     # Separate enum type for overridden_status to allow NULL default cleanly
+    op.execute("DROP TYPE IF EXISTS completeness_override_status_enum")
     op.execute(
         "CREATE TYPE completeness_override_status_enum AS ENUM ('Present', 'Absent', 'Unclear')"
     )
@@ -101,17 +107,11 @@ def upgrade() -> None:
         ),
     )
 
-    # Indexes for common query patterns
-    op.create_index(
-        "ix_completeness_report_items_case_id",
-        "completeness_report_items",
-        ["case_id"],
-    )
-    op.create_index(
-        "ix_completeness_report_items_policy_requirement_id",
-        "completeness_report_items",
-        ["policy_requirement_id"],
-    )
+    # NOTE: no explicit op.create_index() calls here — both case_id and
+    # policy_requirement_id columns above already declare index=True, which
+    # causes create_table() to emit the CREATE INDEX itself. An additional
+    # explicit op.create_index() for the same column would fail with
+    # DuplicateTable (see the identical bug fixed in 0002_phase2_models.py).
 
 
 def downgrade() -> None:
