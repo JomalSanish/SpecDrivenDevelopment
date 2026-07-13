@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "elevance-pa-assistant.fullname" . }}
+  labels:
+    app: {{ include "elevance-pa-assistant.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: {{ include "elevance-pa-assistant.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "elevance-pa-assistant.name" . }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+          # T042: Enforce TLS for internal service-to-service communication
+          volumeMounts:
+            - name: tls-certs
+              mountPath: "/etc/ssl/certs/elevance"
+              readOnly: true
+      volumes:
+        - name: tls-certs
+          secret:
+            secretName: {{ include "elevance-pa-assistant.fullname" . }}-tls
+            optional: true

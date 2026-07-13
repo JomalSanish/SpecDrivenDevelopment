@@ -103,11 +103,11 @@
 
 **Purpose**: Deployment pipeline and final security validations.
 
-- [ ] T038 Create GitHub Actions / GitLab CI pipeline (`.github/workflows/deploy.yml`)
-- [ ] T039 [FLAG: AST Public API Check] Implement custom Semgrep/AST script to fail build if public LLM APIs (`openai.com`, `anthropic.com`) are called (`scripts/security_check.py`)
-- [ ] T040 Implement Secrets Scanning (TruffleHog) in CI pipeline
-- [ ] T041 Configure Kubernetes Helm charts for blue/green deployment (`infrastructure/helm/`)
-- [ ] T042 Enforce TLS for internal service-to-service communication (`infrastructure/helm/templates/`)
+- [X] T038 Create GitHub Actions / GitLab CI pipeline (`.github/workflows/deploy.yml`)
+- [X] T039 [FLAG: AST Public API Check] Implement custom Semgrep/AST script to fail build if public LLM APIs (`openai.com`, `anthropic.com`) are called (`scripts/security_check.py`)
+- [X] T040 Implement Secrets Scanning (TruffleHog) in CI pipeline
+- [X] T041 Configure Kubernetes Helm charts for blue/green deployment (`infrastructure/helm/`)
+- [X] T042 Enforce TLS for internal service-to-service communication (`infrastructure/helm/templates/`)
 
 ---
 

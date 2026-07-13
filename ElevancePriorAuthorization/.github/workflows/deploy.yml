@@ -1,0 +1,67 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  security-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          
+      - name: TruffleHog Secrets Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      - name: AST Public API Check
+        run: python scripts/security_check.py
+
+  build-and-test:
+    needs: security-and-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx
+          
+      - name: Run Backend Tests
+        run: |
+          cd backend
+          python -m pytest
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Setup Kubernetes / Helm deployment here
+      - name: Helm Deploy (Blue/Green)
+        run: |
+          echo "Deploying via Helm..."
+          # Example Helm command:
+          # helm upgrade --install elevance-pa-assistant ./infrastructure/helm \
+          #   --namespace elevance --create-namespace \
+          #   --set deployment.strategy=blue-green

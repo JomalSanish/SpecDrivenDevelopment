@@ -1,0 +1,23 @@
+replicaCount: 2
+
+image:
+  repository: elevance/pa-assistant
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8443
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: pa-assistant.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: pa-assistant-tls
+      hosts:
+        - pa-assistant.local
