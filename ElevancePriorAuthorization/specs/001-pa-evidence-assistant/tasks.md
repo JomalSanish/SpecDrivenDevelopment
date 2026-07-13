@@ -91,11 +91,11 @@
 
 **Purpose**: Validate functional and non-functional requirements.
 
-- [ ] T033 [P] Write integration tests for Admin Policy Ingestion (`backend/tests/integration/test_admin.py`)
-- [ ] T034 [P] Write tests verifying `case_id` strict partitioning in Qdrant (`backend/tests/integration/test_qdrant.py`)
-- [ ] T035 [P] Write tests verifying Nurse Review explicit state fields (no automated decisions) (`backend/tests/integration/test_workflow.py`)
-- [ ] T036 [P] Write tests for confidence threshold edge cases (`backend/tests/unit/test_reasoning_agent.py`)
-- [ ] T037 [P] Write React component tests for Nurse Review UI (`frontend/tests/components/NurseReview.test.tsx`)
+- [X] T033 [P] Write integration tests for Admin Policy Ingestion (`backend/tests/integration/test_admin.py`)
+- [X] T034 [P] Write tests verifying `case_id` strict partitioning in Qdrant (`backend/tests/integration/test_qdrant.py`)
+- [X] T035 [P] Write tests verifying Nurse Review explicit state fields (no automated decisions) (`backend/tests/integration/test_workflow.py`)
+- [X] T036 [P] Write tests for confidence threshold edge cases (`backend/tests/unit/test_reasoning_agent.py`)
+- [X] T037 [P] Write React component tests for Nurse Review UI (`frontend/tests/components/NurseReview.test.tsx`)
 
 ---
 

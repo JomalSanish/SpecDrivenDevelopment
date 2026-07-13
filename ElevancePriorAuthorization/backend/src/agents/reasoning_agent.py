@@ -274,6 +274,8 @@ def _parse_llm_response(raw: str, requirement_id: str) -> tuple[float, str, bool
             text = "\n".join(lines[1:-1]) if len(lines) > 2 else text
 
         data = json.loads(text)
+        if not isinstance(data, dict):
+            raise ValueError("LLM returned non-object JSON")
         confidence = float(data.get("confidence", 0.0))
         verdict = str(data.get("verdict", "Unclear"))
         return confidence, verdict, False

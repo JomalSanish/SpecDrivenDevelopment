@@ -92,7 +92,9 @@ async def client(monkeypatch):
 
     # Build a mock DB session that persists objects in memory
     db_mock = _InMemorySession()
-    app.dependency_overrides[get_db] = lambda: _db_gen(db_mock)
+    async def _override():
+        yield db_mock
+    app.dependency_overrides[get_db] = _override
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
