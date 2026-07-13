@@ -14,7 +14,7 @@ CHK009: overridden_status/overridden_by_id/overridden_at fields added so the
 from typing import Sequence, Union
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
 from alembic import op
 
 revision: str = "0003"
@@ -66,7 +66,7 @@ def upgrade() -> None:
         # System-generated verdict — NEVER mutated after creation (CHK009)
         sa.Column(
             "status",
-            sa.Enum(
+            PgEnum(
                 "Present",
                 "Absent",
                 "Unclear",
@@ -84,7 +84,7 @@ def upgrade() -> None:
         # Nurse override fields (CHK009) — original status never touched
         sa.Column(
             "overridden_status",
-            sa.Enum(
+            PgEnum(
                 "Present",
                 "Absent",
                 "Unclear",

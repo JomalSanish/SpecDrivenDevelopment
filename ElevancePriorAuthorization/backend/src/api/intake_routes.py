@@ -19,7 +19,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, BackgroundTasks
 from fastapi import Body
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +29,7 @@ from src.core.database import get_db
 from src.core.storage import upload_document
 from src.models.case import Case, Document, DocumentType, ReviewStatus, AssignedQueue
 from src.models.policy import Policy
+from src.services.completeness_pipeline import run_completeness_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,7 @@ _ALLOWED_TYPES = {
     ),
 )
 async def create_case(
+    background_tasks: BackgroundTasks,
     member_id: str = Form(..., description="Member / patient ID"),
     provider_id: str = Form(..., description="Ordering provider ID"),
     cpt_code: str = Form(..., description="Requested procedure CPT code"),
@@ -145,15 +147,20 @@ async def create_case(
         )
         db.add(doc)
 
-    await db.flush()
+    await db.commit()
 
     logger.info(
-        "Case created: id=%s member=%s policy=%s docs=%d",
+        "Case created: id=%s member=%s policy=%s docs=%d — scheduling completeness pipeline",
         case.id,
         member_id,
         policy_id,
         len(documents),
     )
+
+    # Kick off the completeness pipeline in the background.
+    # The HTTP 201 is returned immediately; the case advances to
+    # in_nurse_review once pipeline completes (FR-004).
+    background_tasks.add_task(run_completeness_pipeline, str(case.id))
 
     return CaseCreateResponse(
         case_id=case.id,

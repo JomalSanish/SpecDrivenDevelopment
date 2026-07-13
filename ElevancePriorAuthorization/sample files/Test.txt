@@ -1,0 +1,25 @@
+Test
+docker-compose up -d postgres minio qdrant ollama tei
+docker compose exec ollama ollama pull llama3.1
+
+cd backend
+python -m venv venv
+# On Windows: venv\Scripts\activate
+# On Mac/Linux: source venv/bin/activate
+pip install -r requirements.txt
+uvicorn src.main:app --reload --port 8000
+
+cd frontend
+npm install
+npm run dev
+
+
+MRI Lumbar Spine
+MRI_LUMBAR
+2026-Q3
+
+MBR-778241
+DR-REYES
+72148
+M54.16
+MRI Lumbar Spine

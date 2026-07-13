@@ -110,12 +110,12 @@ class Case(Base):
 
     # Explicit workflow state (SEC-001 — no hidden booleans)
     review_status: Mapped[ReviewStatus] = mapped_column(
-        SAEnum(ReviewStatus, name="review_status_enum", create_type=True),
+        SAEnum(ReviewStatus, name="review_status_enum", create_type=False),
         default=ReviewStatus.pending_verification,
         nullable=False,
     )
     assigned_queue: Mapped[AssignedQueue] = mapped_column(
-        SAEnum(AssignedQueue, name="assigned_queue_enum", create_type=True),
+        SAEnum(AssignedQueue, name="assigned_queue_enum", create_type=False),
         default=AssignedQueue.nurse_review,
         nullable=False,
     )
@@ -180,7 +180,12 @@ class Document(Base):
         index=True,
     )
     document_type: Mapped[DocumentType] = mapped_column(
-        SAEnum(DocumentType, name="document_type_enum", create_type=True),
+        SAEnum(
+            DocumentType,
+            name="document_type_enum",
+            create_type=False,
+            values_callable=lambda e: [x.value for x in e],
+        ),
         nullable=False,
     )
     storage_path: Mapped[str] = mapped_column(

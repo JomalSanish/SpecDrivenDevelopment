@@ -7,7 +7,7 @@ Create Date: 2026-07-10
 from typing import Sequence, Union
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB, ENUM as PGEnum
 from alembic import op
 
 revision: str = "0002"
@@ -89,20 +89,20 @@ def upgrade() -> None:
         ),
         sa.Column(
             "review_status",
-            sa.Enum(
+            PGEnum(
                 "pending_verification",
                 "in_nurse_review",
                 "accepted",
                 "returned_to_provider",
                 name="review_status_enum",
-                create_type=False,  # already created above
+                create_type=False,  # already created above; PGEnum actually honors this
             ),
             nullable=False,
             server_default="pending_verification",
         ),
         sa.Column(
             "assigned_queue",
-            sa.Enum(
+            PGEnum(
                 "nurse_review",
                 "escalation_manager",
                 "medical_director_review",
@@ -138,7 +138,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "document_type",
-            sa.Enum("PDF", "Scan", "Fax", name="document_type_enum", create_type=False),
+            PGEnum("PDF", "Scan", "Fax", name="document_type_enum", create_type=False),
             nullable=False,
         ),
         sa.Column("storage_path", sa.String(1024), nullable=False),

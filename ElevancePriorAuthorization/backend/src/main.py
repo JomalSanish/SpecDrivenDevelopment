@@ -17,7 +17,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api import admin_routes, audit_routes, intake_routes, ops_routes, review_routes
+from src.api import admin_routes, audit_routes, intake_routes, ops_routes, review_routes, document_routes
 
 logger = logging.getLogger(__name__)
 
@@ -69,15 +69,12 @@ app.add_middleware(
 )
 
 # Phase 2 routers
-app.include_router(admin_routes.router)
 app.include_router(intake_routes.router)
-
-# Phase 5 routers
 app.include_router(review_routes.router)
-
-# Phase 6 routers
 app.include_router(ops_routes.router)
 app.include_router(audit_routes.router)
+app.include_router(admin_routes.router)
+app.include_router(document_routes.router, prefix="/api/v1")
 
 
 # ---------------------------------------------------------------------------

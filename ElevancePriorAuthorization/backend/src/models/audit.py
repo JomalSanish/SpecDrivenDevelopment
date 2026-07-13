@@ -98,7 +98,7 @@ class AuditLog(Base):
         String(256), nullable=False, index=True
     )
     action_type: Mapped[AuditActionType] = mapped_column(
-        SAEnum(AuditActionType, name="audit_action_type_enum", create_type=True),
+        SAEnum(AuditActionType, name="audit_action_type_enum", create_type=False),
         nullable=False,
         index=True,
     )

@@ -313,7 +313,7 @@ class PolicyReasoningAgent:
         self,
         llm_endpoint: Optional[str] = None,
         llm_model: Optional[str] = None,
-        http_timeout: float = 120.0,
+        http_timeout: float = 300.0,
     ) -> None:
         # Pull endpoint and model from secrets layer (Constitution §V)
         self._llm_endpoint = (
@@ -372,6 +372,13 @@ class PolicyReasoningAgent:
                 f"PolicyReasoningAgent: Ollama endpoint unreachable at {self._llm_endpoint}. "
                 "Case must be held in queued/retry state. No external LLM fallback is permitted. "
                 f"Original error: {exc}"
+            ) from exc
+        except httpx.ReadTimeout as exc:
+            raise RuntimeError(
+                f"PolicyReasoningAgent: LLM at {self._llm_endpoint} did not respond within "
+                f"{self._http_timeout:.0f} seconds for requirement_id={requirement_id}. "
+                "Ollama may still be loading the model (cold start). Retry after a minute, "
+                "or check 'docker logs pa_ollama'."
             ) from exc
         except httpx.HTTPStatusError as exc:
             raise RuntimeError(

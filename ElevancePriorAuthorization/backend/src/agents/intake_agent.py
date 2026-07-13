@@ -182,7 +182,7 @@ class IntakeClassificationAgent:
             len(policy_text),
         )
 
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             try:
                 response = await client.post(self._chat_url, json=payload)
                 response.raise_for_status()
@@ -190,6 +190,12 @@ class IntakeClassificationAgent:
                 raise RuntimeError(
                     f"Intake agent cannot reach local LLM at {self._chat_url}. "
                     "Is Ollama running? (docker-compose up -d ollama)"
+                ) from exc
+            except httpx.ReadTimeout as exc:
+                raise RuntimeError(
+                    f"Intake agent: LLM at {self._chat_url} did not respond within 300 seconds. "
+                    "Ollama may still be loading the model into memory (cold start). "
+                    "Wait a minute and retry, or check 'docker logs pa_ollama'."
                 ) from exc
             except httpx.HTTPStatusError as exc:
                 raise RuntimeError(

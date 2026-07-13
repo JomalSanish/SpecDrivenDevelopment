@@ -89,7 +89,7 @@ class CompletenessReportItem(Base):
 
     # System-generated verdict — NEVER mutated after creation (CHK009)
     status: Mapped[CompletenessStatus] = mapped_column(
-        SAEnum(CompletenessStatus, name="completeness_status_enum", create_type=True),
+        SAEnum(CompletenessStatus, name="completeness_status_enum", create_type=False),
         nullable=False,
     )
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False)
@@ -110,7 +110,7 @@ class CompletenessReportItem(Base):
         SAEnum(
             CompletenessStatus,
             name="completeness_override_status_enum",
-            create_type=True,
+            create_type=False,
         ),
         nullable=True,
     )

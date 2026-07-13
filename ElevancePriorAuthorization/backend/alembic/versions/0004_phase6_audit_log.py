@@ -15,7 +15,7 @@ data-model.md: action_type is a constrained Enum (not free-text String).
 from typing import Sequence, Union
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID, ENUM as PgEnum
 from alembic import op
 
 revision: str = "0004"
@@ -26,6 +26,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # --- Enum for action_type ---
+    # DROP IF EXISTS guard makes this safely re-runnable after a partial failure.
+    op.execute("DROP TYPE IF EXISTS audit_action_type_enum")
     op.execute("""
         CREATE TYPE audit_action_type_enum AS ENUM (
             'policy_ingested',
@@ -58,7 +60,7 @@ def upgrade() -> None:
         sa.Column("actor_id", sa.String(256), nullable=False),
         sa.Column(
             "action_type",
-            sa.Enum(
+            PgEnum(
                 "policy_ingested",
                 "case_submitted",
                 "rag_retrieval",
