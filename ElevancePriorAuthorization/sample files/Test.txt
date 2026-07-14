@@ -1,13 +1,14 @@
-Test
-docker-compose up -d postgres minio qdrant ollama tei
-docker compose exec ollama ollama pull llama3.1
+Setup (run from repo root)
+1. docker-compose up -d              <- starts ALL services incl. minio_init (creates bucket)
+2. docker compose exec ollama ollama pull llama3.1
 
 cd backend
-python -m venv venv
-# On Windows: venv\Scripts\activate
-# On Mac/Linux: source venv/bin/activate
-pip install -r requirements.txt
-uvicorn src.main:app --reload --port 8000
+3. python -m venv venv
+   # On Windows:  venv\Scripts\activate
+   # On Mac/Linux: source venv/bin/activate
+4. pip install -r requirements.txt
+5. venv\Scripts\alembic upgrade head  <- creates DB tables (run once per machine)
+6. uvicorn src.main:app --reload --port 8000
 
 cd frontend
 npm install

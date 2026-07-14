@@ -1,0 +1,11 @@
+Patient: Mary Johnson (ID: M98765)
+Date of Visit: 2026-07-05
+Provider: Dr. Alan Grant, Orthopedic Surgery
+
+Chief Complaint: Bilateral knee pain, worse on the left.
+
+Assessment: Patient has a long-standing history of advanced osteoarthritis (ICD-10 M17.11). Her most recent WOMAC joint pain assessment score is 78, indicating severe functional limitation; she struggles to walk up stairs or stand for longer than 15 minutes. Review of her recent radiology report from June 15th confirms severe joint space narrowing with Kellgren-Lawrence Grade 4 changes in the left knee.
+
+History: Review of external records shows the patient has completed 16 weeks of structured, non-surgical conservative management, including physical therapy and intra-articular corticosteroid injections, without significant relief.
+
+Plan: The patient meets all criteria for surgical intervention. Proceeding with Prior Authorization request for Left Total Knee Arthroplasty (CPT 27447).

@@ -242,6 +242,18 @@ class ReviewerSummaryAgent:
                 "Draft generation must be retried. No external LLM fallback is permitted. "
                 f"Original error: {exc}"
             ) from exc
+        except httpx.ReadTimeout as exc:
+            raise RuntimeError(
+                f"ReviewerSummaryAgent: LLM at {self._llm_endpoint} did not respond within "
+                f"{self._http_timeout:.0f} seconds for case_id={case_id}. "
+                "Ollama may still be loading the model. Retry after a minute."
+            ) from exc
+        except httpx.ReadError as exc:
+            raise RuntimeError(
+                f"ReviewerSummaryAgent: Ollama dropped the connection mid-response for "
+                f"case_id={case_id}. Model is likely still loading (cold start). "
+                "Retry the case after ~30 seconds, or check 'docker logs pa_ollama'."
+            ) from exc
         except httpx.HTTPStatusError as exc:
             raise RuntimeError(
                 f"ReviewerSummaryAgent: Ollama returned HTTP {exc.response.status_code} "

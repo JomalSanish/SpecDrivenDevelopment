@@ -1,0 +1,26 @@
+Date of Service: July 10, 2026
+Provider: Dr. Evelyn Carter, Orthopedic Surgery
+Patient: Arthur Pendelton
+
+Chief Complaint: Severe, unremitting left knee pain.
+
+History of Present Illness:
+Mr. Pendelton is a 68-year-old male presenting for an orthopedic consultation regarding his left knee. He reports that the pain has progressively worsened over the last 24 months. He experiences sharp pain with weight-bearing, significant morning stiffness, and requires a cane for ambulation outside the home.
+
+Objective Examination:
+Left knee shows a slight varus deformity. Moderate effusion is present. Palpation reveals severe tenderness along the medial joint line.
+Range of Motion: 5 degrees extension to 95 degrees flexion with crepitus.
+Ligamentous exam: ACL, PCL, MCL, and LCL are stable.
+
+Standardized Assessment:
+I administered the WOMAC (Western Ontario and McMaster Universities Osteoarthritis Index) questionnaire today. His standardized joint pain assessment score is 82, confirming severe functional limitation in his daily life.
+
+Assessment & Plan:
+
+Diagnosis of advanced osteoarthritis of the left knee (ICD-10 M17.11).
+
+X-rays confirm Kellgren-Lawrence Grade 4 changes.
+
+Patient has completed a 14-week trial of conservative non-surgical management, including NSAIDs, injections, and physical therapy, which has completely failed to provide relief.
+
+Given the objective imaging, severe functional deficits, and exhaustion of conservative measures, we discussed surgical intervention. The patient wishes to proceed with a Left Total Knee Arthroplasty (CPT 27447). Risks, benefits, and alternatives were discussed in detail. Prior authorization will be initiated.

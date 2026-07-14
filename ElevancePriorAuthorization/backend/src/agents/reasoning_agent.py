@@ -380,6 +380,13 @@ class PolicyReasoningAgent:
                 "Ollama may still be loading the model (cold start). Retry after a minute, "
                 "or check 'docker logs pa_ollama'."
             ) from exc
+        except httpx.ReadError as exc:
+            raise RuntimeError(
+                f"PolicyReasoningAgent: Ollama dropped the connection mid-response for "
+                f"requirement_id={requirement_id}. This usually means the model is still "
+                "loading (cold start) or the host is under memory pressure. "
+                "Retry the case after ~30 seconds, or check 'docker logs pa_ollama'."
+            ) from exc
         except httpx.HTTPStatusError as exc:
             raise RuntimeError(
                 f"PolicyReasoningAgent: Ollama returned HTTP {exc.response.status_code} "
