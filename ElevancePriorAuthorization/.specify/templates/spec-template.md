@@ -93,15 +93,6 @@
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
-### Compliance & Security Requirements (Constitution Mandated)
-
-- **SEC-001**: System MUST NOT use hidden booleans for routing (e.g., `human_review_required`). Must use explicit state fields.
-- **SEC-002**: System MUST process all PHI and policy documents locally/on-prem. No external/public API calls for RAG or inference.
-- **SEC-003**: System MUST utilize hybrid retrieval (combining dense semantic and sparse/keyword search).
-- **SEC-004**: System MUST cite specific source documents with stable UUIDs for all evidence claims.
-- **SEC-005**: System MUST log all agent actions, prompts, routing, and human decisions for auditability.
-- **SEC-006**: System MUST utilize a secrets manager abstraction layer for credentials from the start.
-
 *Example of marking unclear requirements:*
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]

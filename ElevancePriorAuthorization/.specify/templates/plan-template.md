@@ -4,7 +4,7 @@
 
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Note**: This template is filled in by the `/speckit-plan` command; its definition describes the execution workflow.
 
 ## Summary
 
@@ -40,13 +40,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [ ] **Human-in-the-loop**: No automated approve/deny/accept/reject outcomes. Uses explicit state fields.
-- [ ] **Data Locality & Confidentiality**: No public/3rd-party hosted API calls for RAG/inference on case documents.
-- [ ] **Hybrid Retrieval**: Search paths combine dense semantic + sparse BM25 retrieval.
-- [ ] **Auditable Citations**: Evidence claims cite specific source documents/locations with stable UUIDs.
-- [ ] **Secrets Management**: Config/API keys use an abstracted secrets manager from Phase 1.
-- [ ] **Five-Agent Architecture**: Aligns with Intake, Retrieval, Reasoning, Reviewer Summary, Workflow.
-- [ ] **Spec-Driven**: Full specification set is produced before execution phase.
+[Gates determined based on constitution file]
 
 ## Project Structure
 

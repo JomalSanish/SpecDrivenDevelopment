@@ -29,6 +29,7 @@ Escalation: If the local Ollama endpoint is unreachable, RuntimeError is raised
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import uuid
@@ -313,7 +314,7 @@ class PolicyReasoningAgent:
         self,
         llm_endpoint: Optional[str] = None,
         llm_model: Optional[str] = None,
-        http_timeout: float = 300.0,
+        http_timeout: float = 900.0,
     ) -> None:
         # Pull endpoint and model from secrets layer (Constitution §V)
         self._llm_endpoint = (
@@ -336,15 +337,69 @@ class PolicyReasoningAgent:
         )
 
     # ------------------------------------------------------------------
-    # Internal: single LLM call
+    # Internal: model warm-up
     # ------------------------------------------------------------------
 
-    async def _call_llm(self, prompt: str, requirement_id: str) -> str:
+    async def _warm_up_model(self) -> None:
+        """
+        Send a minimal no-op prompt to the Ollama endpoint to force the model
+        into GPU memory before the first real inference request.
+
+        Ollama's cold-start can take 60–180 s depending on model size and
+        hardware.  Sending a cheap warm-up prompt (num_predict=1) absorbs that
+        latency here rather than timing out mid-pipeline.
+
+        Uses a dedicated generous timeout (360 s) independent of _http_timeout
+        so that the warm-up itself can survive the initial model-load period.
+        Failures are logged as warnings but do NOT abort the pipeline — the
+        subsequent real inference may still succeed if the model loaded in time.
+        """
+        url = f"{self._llm_endpoint.rstrip('/')}/api/generate"
+        payload = {
+            "model": self._llm_model,
+            "prompt": "ping",
+            "stream": False,
+            "options": {"num_predict": 1},
+        }
+        WARMUP_TIMEOUT = 360.0  # seconds — enough for cold-start model load
+        try:
+            logger.info(
+                "ReasoningAgent: warming up model '%s' at %s …",
+                self._llm_model,
+                self._llm_endpoint,
+            )
+            async with httpx.AsyncClient(timeout=WARMUP_TIMEOUT) as client:
+                resp = await client.post(url, json=payload)
+                resp.raise_for_status()
+            logger.info("ReasoningAgent: model warm-up complete.")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "ReasoningAgent: warm-up failed (%s) — continuing; "
+                "first inference may still timeout if model is not yet loaded.",
+                exc,
+            )
+
+    # ------------------------------------------------------------------
+    # Internal: single LLM call (with retry on timeout)
+    # ------------------------------------------------------------------
+
+    async def _call_llm(
+        self,
+        prompt: str,
+        requirement_id: str,
+        *,
+        max_retries: int = 3,
+        retry_delay_s: float = 30.0,
+    ) -> str:
         """
         POST to the Ollama /api/generate endpoint.
 
-        Raises RuntimeError if the endpoint is unreachable (caller must hold
-        the case in queued/retry state — no external fallback allowed).
+        Retries up to *max_retries* times on ReadTimeout or ReadError
+        (cold-start recovery) with *retry_delay_s* seconds between attempts.
+
+        Raises RuntimeError if the endpoint is unreachable or all retries
+        are exhausted (caller must hold the case in queued/retry state —
+        no external fallback allowed).
 
         Returns the raw text content of the model's response.
         """
@@ -360,38 +415,75 @@ class PolicyReasoningAgent:
             },
         }
 
-        try:
-            async with httpx.AsyncClient(timeout=self._http_timeout) as client:
-                response = await client.post(url, json=payload)
-                response.raise_for_status()
-                data = response.json()
-                return str(data.get("response", ""))
+        last_exc: Exception | None = None
+        for attempt in range(1, max_retries + 1):
+            try:
+                async with httpx.AsyncClient(timeout=self._http_timeout) as client:
+                    response = await client.post(url, json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+                    return str(data.get("response", ""))
 
-        except httpx.ConnectError as exc:
-            raise RuntimeError(
-                f"PolicyReasoningAgent: Ollama endpoint unreachable at {self._llm_endpoint}. "
-                "Case must be held in queued/retry state. No external LLM fallback is permitted. "
-                f"Original error: {exc}"
-            ) from exc
-        except httpx.ReadTimeout as exc:
-            raise RuntimeError(
-                f"PolicyReasoningAgent: LLM at {self._llm_endpoint} did not respond within "
-                f"{self._http_timeout:.0f} seconds for requirement_id={requirement_id}. "
-                "Ollama may still be loading the model (cold start). Retry after a minute, "
-                "or check 'docker logs pa_ollama'."
-            ) from exc
-        except httpx.ReadError as exc:
-            raise RuntimeError(
-                f"PolicyReasoningAgent: Ollama dropped the connection mid-response for "
-                f"requirement_id={requirement_id}. This usually means the model is still "
-                "loading (cold start) or the host is under memory pressure. "
-                "Retry the case after ~30 seconds, or check 'docker logs pa_ollama'."
-            ) from exc
-        except httpx.HTTPStatusError as exc:
-            raise RuntimeError(
-                f"PolicyReasoningAgent: Ollama returned HTTP {exc.response.status_code} "
-                f"for requirement_id={requirement_id}. Original error: {exc}"
-            ) from exc
+            except httpx.ConnectError as exc:
+                raise RuntimeError(
+                    f"PolicyReasoningAgent: Ollama endpoint unreachable at {self._llm_endpoint}. "
+                    "Case must be held in queued/retry state. No external LLM fallback is permitted. "
+                    f"Original error: {exc}"
+                ) from exc
+            except (httpx.ReadTimeout, httpx.ReadError) as exc:
+                last_exc = exc
+                if attempt < max_retries:
+                    logger.warning(
+                        "ReasoningAgent: LLM timeout/read-error on attempt %d/%d for "
+                        "requirement_id=%s (%s). Waiting %.0f s before retry …",
+                        attempt,
+                        max_retries,
+                        requirement_id,
+                        type(exc).__name__,
+                        retry_delay_s,
+                    )
+                    await asyncio.sleep(retry_delay_s)
+                else:
+                    logger.error(
+                        "ReasoningAgent: all %d attempts exhausted for requirement_id=%s.",
+                        max_retries,
+                        requirement_id,
+                    )
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code >= 500:
+                    last_exc = exc
+                    if attempt < max_retries:
+                        logger.warning(
+                            "ReasoningAgent: LLM returned HTTP %d on attempt %d/%d for "
+                            "requirement_id=%s. Waiting %.0f s before retry …",
+                            exc.response.status_code,
+                            attempt,
+                            max_retries,
+                            requirement_id,
+                            retry_delay_s,
+                        )
+                        await asyncio.sleep(retry_delay_s)
+                    else:
+                        logger.error(
+                            "ReasoningAgent: all %d attempts exhausted for requirement_id=%s (HTTP %d).",
+                            max_retries,
+                            requirement_id,
+                            exc.response.status_code,
+                        )
+                else:
+                    raise RuntimeError(
+                        f"PolicyReasoningAgent: Ollama returned HTTP {exc.response.status_code} "
+                        f"for requirement_id={requirement_id}. Original error: {exc}"
+                    ) from exc
+
+        # All retries exhausted — re-raise with a clear message
+        raise RuntimeError(
+            f"PolicyReasoningAgent: LLM at {self._llm_endpoint} did not respond within "
+            f"{self._http_timeout:.0f} s after {max_retries} attempt(s) for "
+            f"requirement_id={requirement_id}. "
+            "Ollama may still be loading the model (cold start). Retry after a minute, "
+            "or check 'docker logs pa_ollama'."
+        ) from last_exc
 
     # ------------------------------------------------------------------
     # Internal: assess one requirement
@@ -500,6 +592,10 @@ class PolicyReasoningAgent:
             case_id,
             len(requirement_contexts),
         )
+
+        # Warm up the model before the first real inference to absorb cold-start
+        # latency (model load can take 60–180 s on first call).
+        await self._warm_up_model()
 
         results: list[ReasoningResult] = []
         for ctx in requirement_contexts:

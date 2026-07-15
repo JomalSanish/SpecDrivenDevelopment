@@ -1,6 +1,6 @@
 Setup (run from repo root)
-1. docker-compose up -d              <- starts ALL services incl. minio_init (creates bucket)
-2. docker compose exec ollama ollama pull llama3.1
+docker-compose up -d             <- starts ALL services incl. minio_init (creates bucket)
+docker compose exec ollama ollama pull llama3.1
 
 cd backend
 3. python -m venv venv
@@ -24,3 +24,14 @@ DR-REYES
 72148
 M54.16
 MRI Lumbar Spine
+
+
+
+delete cases
+
+docker exec pa_postgres psql -U pa_user -d pa_evidence -c "TRUNCATE cases RESTART IDENTITY CASCADE;"
+
+
+
+5b672a96-97af-42d0-a683-caff7c6e65af     TotalKneeArthroplasty
+f407ed84-6303-4ea0-876b-8fdacd6150bd     LumbarSpineMRI

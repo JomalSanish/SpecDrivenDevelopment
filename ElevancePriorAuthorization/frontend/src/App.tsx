@@ -7,7 +7,7 @@ function Home() {
   return (
     <main style={{ fontFamily: "'Inter', system-ui, sans-serif", padding: '2rem', background: '#0a0f1e', color: '#f1f5f9', minHeight: '100vh' }}>
       <h1 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>PA Evidence Assistant</h1>
-      <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>Elevance Prior Authorization Evidence Assistant — Phase 6 ready.</p>
+      <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>Elevance Prior Authorization Evidence Assistant.</p>
       <nav style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
         <Link to="/intake" style={{ background: '#3b82f6', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600 }}>
           → Intake Dashboard
