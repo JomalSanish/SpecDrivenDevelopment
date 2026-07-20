@@ -61,16 +61,23 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-Examples of foundational tasks (adjust based on your project):
+### Mandatory Constitution-Driven Tasks (include all that apply to this feature)
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T004 Setup/extend database schema and Alembic migration (Principle XIV)
+- [ ] T005 [P] Implement/wire JWT + role-check middleware for all new routes (Principle III)
+- [ ] T006 [P] Wire secrets through the secrets-abstraction module; zero raw `os.environ` calls (Principle XIII)
+- [ ] T007 Add immutable audit-log entries for all case mutations (Principle X)
+- [ ] T008 [P] Configure LLM for structured JSON output with phi4-mini or llama3.2:3b (Principle IV) *(if LLM used)*
+- [ ] T009 [P] Configure native PDF extraction → OCR fallback pipeline with provenance metadata (Principle V) *(if documents processed)*
+- [ ] T010 Configure nurse case locking (30-min inactivity auto-release) (Principle XI) *(if nurse UI affected)*
 
-**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+### Additional Foundational Tasks (project-specific)
+
+- [ ] T0XX [P] Setup API routing and middleware structure
+- [ ] T0XX Create base models/entities that all stories depend on
+- [ ] T0XX Configure error handling and logging infrastructure
+
+**Checkpoint**: Foundation ready — user story implementation can now begin in parallel
 
 ---
 

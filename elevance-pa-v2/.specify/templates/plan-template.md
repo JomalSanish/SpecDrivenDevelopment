@@ -40,7 +40,26 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Answer each gate for this feature. Mark ✅ Pass, ❌ Fail (justify below), or N/A.
+
+| # | Principle | Gate Question | Status |
+|---|-----------|---------------|--------|
+| I | On-Premises Inference Only | Does this feature introduce any call to an external AI/ML or storage API? | |
+| II | Human-Only Clinical Routing | Does this feature add any automated approve/deny path, or introduce a `human_review_required` boolean? | |
+| III | Auth & Authz Everywhere | Does every new route carry JWT validation AND an explicit role check? | |
+| IV | LLM Sizing & Reliability | If LLM is used, is the model ≤ 4 B params (phi4-mini or llama3.2:3b) with JSON-structured output? | |
+| V | Hybrid Document Extraction | Does text extraction attempt native PDF (PyMuPDF) first, OCR (EasyOCR) only on near-empty pages, with chunk-level provenance metadata? | |
+| VI | Best-Effort Field Extraction | Does the LLM leave unconfident fields blank rather than guessing? | |
+| VII | Confidence Bands | Are confidence displays limited to the three bands (Present ≥85%, Unclear 70–85%, Absent <70%)? | |
+| VIII | Hybrid Retrieval | Does retrieval apply exact/keyword for identifiers and dense semantic for narrative, with RRF + keyword-miss cap? | |
+| IX | Policy Management | Is policy upload restricted to admin? Does the UI support full manual add/edit/delete before save? | |
+| X | Case Editing & Audit Trail | Does admin-edit of a decided case require a comment, re-queue it, and preserve the original decision in the audit log? | |
+| XI | Nurse Case Locking | Does opening a case acquire an exclusive lock with a 30-min inactivity auto-release? | |
+| XII | Infrastructure Ceiling | Does this feature require more than 2 Docker containers, or attempt to run GPU workloads inside Docker/WSL2? | |
+| XIII | Secrets Abstraction | Are all secrets accessed through the secrets-abstraction module (no raw `os.environ` calls)? | |
+| XIV | Schema Change Discipline | Are all schema changes shipped as new Alembic migrations (no edits to applied migrations)? | |
+
+> **Complexity Justification (if any gate fails)**: Fill the Complexity Tracking section below.
 
 ## Project Structure
 

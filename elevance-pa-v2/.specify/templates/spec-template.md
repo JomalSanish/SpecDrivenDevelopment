@@ -6,7 +6,29 @@
 
 **Status**: Draft
 
-**Input**: User description: "$ARGUMENTS"
+## Constitution Alignment *(mandatory)*
+
+Before writing requirements, identify which constitution principles apply to this
+feature and note any specific constraints they impose.
+
+| Principle | Applicable? | Notes / Constraints for this Feature |
+|-----------|-------------|---------------------------------------|
+| I – On-Premises Inference | Yes / No | |
+| II – Human-Only Routing | Yes / No | |
+| III – Auth & Authz | Yes / No | |
+| IV – LLM Sizing | Yes / No | |
+| V – Hybrid Extraction | Yes / No | |
+| VI – Best-Effort Fields | Yes / No | |
+| VII – Confidence Bands | Yes / No | |
+| VIII – Hybrid Retrieval | Yes / No | |
+| IX – Policy Management | Yes / No | |
+| X – Case Editing & Audit | Yes / No | |
+| XI – Nurse Locking | Yes / No | |
+| XII – Infra Ceiling | Yes / No | |
+| XIII – Secrets Abstraction | Yes / No | |
+| XIV – Schema Discipline | Yes / No | |
+
+---
 
 ## User Scenarios & Testing *(mandatory)*
 
