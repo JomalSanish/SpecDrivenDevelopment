@@ -41,5 +41,7 @@
 
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
 - All items pass — spec is ready for `/speckit-plan`
-- The SLA escalation background service is assumed inherited from v1 architecture; its behavior (escalate after policy.sla_hours, default 48h) is reflected in the domain model but not re-specified as a user story since no new behavior is being added
-- The "Operations Manager" persona from the sample usecase is addressed via the Admin all-cases table and audit log — not as a separate page/role, per the Assumptions section
+- **Clarification session 2026-07-20**: 5 questions asked and answered. Sections updated: Clarifications (new), FR-006 (logout/token revocation), FR-013a (required fields), FR-017 (Pipeline Error status), FR-018 (polling), FR-026/FR-027 (SLA escalation), FR-032 (heartbeat-based lock inactivity), Case entity (is_escalated + last_active_at), Edge Cases (pipeline error + AI extraction), Assumptions (SLA single-queue clarification).
+- The SLA escalation background service (default 48h) is now fully specified: escalated cases stay in the Nurse Review queue flagged `is_escalated` and sorted to the top; no separate queue is created. This is reflected in FR-026, FR-027, and the Assumptions section.
+- The "Operations Manager" persona from the sample usecase is addressed via the Admin all-cases table and audit log — not as a separate page/role, per the Assumptions section.
+
