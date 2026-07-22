@@ -1,7 +1,7 @@
 """
 backend/src/agents/reasoning_agent.py
 
-Policy Reasoning & Gap Analysis Agent — Agent 3 of the Five-Agent Architecture.
+reasoning_agent — Agent 3 of the Five-Agent Architecture.
 Implements T019 (agent) and T020 (confidence threshold guardrails).
 
 Responsibilities:

@@ -1,8 +1,7 @@
 """
 backend/src/agents/workflow_agent.py
 
-Workflow/Audit & Deployment Readiness Agent — Agent 5 of the Five-Agent
-Architecture.  Implements T029.
+workflow_agent — Agent 5 of the Five-Agent Architecture.  Implements T029.
 
 Responsibilities
 ----------------

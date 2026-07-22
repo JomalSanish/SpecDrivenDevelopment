@@ -1,7 +1,7 @@
 """
 backend/src/agents/intake_agent.py
 
-Intake & Classification Agent — Agent 1 of the Five-Agent Architecture.
+intake_agent — Agent 1 of the Five-Agent Architecture.
 
 Responsibilities:
   1. Extract raw text from an uploaded policy PDF (local PyMuPDF / pdfminer).

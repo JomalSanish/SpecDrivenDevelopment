@@ -1,7 +1,7 @@
 """
 backend/src/agents/summary_agent.py
 
-Reviewer Summary & Communication Agent — Agent 4 of the Five-Agent Architecture.
+summary_agent — Agent 4 of the Five-Agent Architecture.
 Implements T021.
 
 Responsibilities:

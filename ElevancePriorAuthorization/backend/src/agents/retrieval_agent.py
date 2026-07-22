@@ -1,7 +1,7 @@
 """
 backend/src/agents/retrieval_agent.py
 
-Evidence Retrieval (RAG) Agent — Agent 2 of the Five-Agent Architecture.
+retrieval_agent — Agent 2 of the Five-Agent Architecture.
 
 Responsibilities:
   1. Accept a `case_id` and a list of `PolicyRequirement` matching queries.
