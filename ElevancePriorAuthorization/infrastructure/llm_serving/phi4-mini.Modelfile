@@ -1,0 +1,51 @@
+# speckit/infrastructure/llm_serving/phi4-mini.Modelfile
+#
+# Builds a custom Ollama model on top of the base phi4-mini pull, with a
+# larger context window baked in at the model level.
+#
+# WHY THIS EXISTS:
+# Ollama defaults every model to a 2048-token context window unless told
+# otherwise via `options.num_ctx` on each request. That per-request option is
+# reliably honored on Ollama's native /api/generate and /api/chat endpoints
+# (used by reasoning_agent.py and summary_agent.py), but is NOT guaranteed on
+# the OpenAI-compatible /v1/chat/completions endpoint (used by
+# intake_agent.py) across all Ollama versions. Since intake_agent.py sends
+# the FULL text of an uploaded policy document in one prompt, it's the
+# component most likely to silently exceed a 2048-token window — which
+# would truncate the policy text with no error, not raise one.
+#
+# Building this custom model bakes num_ctx in at the model definition level,
+# so every endpoint (generate, chat, and the OpenAI-compat layer) respects it
+# consistently, regardless of whether the calling code also sets num_ctx
+# per-request.
+#
+# USAGE:
+#   1. Pull the base model first:
+#        ollama pull phi4-mini
+#   2. Build the custom model from this Modelfile:
+#        ollama create phi4-mini-pa -f phi4-mini.Modelfile
+#   3. Point the app at the custom model name instead of the bare tag —
+#      in backend/.env.local (or wherever LLM_MODEL is set):
+#        LLM_MODEL=phi4-mini-pa
+#   4. Confirm it loads:
+#        ollama run phi4-mini-pa "hi"
+#
+# If you skip this and use the bare `phi4-mini` tag, the app still sets
+# num_ctx=8192 per-request wherever the Ollama API supports it (see
+# reasoning_agent.py's _NUM_CTX constant) — this Modelfile is the belt to
+# that suspenders for the one endpoint (intake_agent's chat-completions
+# call) where the per-request option isn't guaranteed to apply.
+
+FROM phi4-mini
+
+# 8192 tokens comfortably covers the reasoning/summary prompts (policy
+# requirement + up to 5 evidence chunks) and most real-world PA policy
+# documents for intake extraction. Raise this further (e.g. 16384) if your
+# policy documents run unusually long — check GPU VRAM headroom first, since
+# KV-cache memory scales with context length.
+PARAMETER num_ctx 8192
+
+# Keep generation deterministic for clinical/compliance-sensitive output;
+# the agents also set this per-request, but baking in a sane default here
+# means any ad-hoc `ollama run phi4-mini-pa` testing behaves the same way.
+PARAMETER temperature 0.1

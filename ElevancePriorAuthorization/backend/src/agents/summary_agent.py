@@ -197,7 +197,7 @@ class ReviewerSummaryAgent:
         self._llm_model = (
             llm_model
             or get_secret("LLM_MODEL")
-            or "llama3.1"
+            or "phi4-mini"
         )
         self._http_timeout = http_timeout
 
@@ -226,6 +226,10 @@ class ReviewerSummaryAgent:
             "options": {
                 "temperature": 0.3,   # slightly more natural prose for communications
                 "num_predict": 1024,
+                # See reasoning_agent.py's _NUM_CTX comment: Ollama defaults to a
+                # 2048-token context regardless of the model's real capacity, which
+                # phi4-mini's case-summary + full document-list prompt can exceed.
+                "num_ctx": 8192,
             },
         }
 
@@ -252,7 +256,8 @@ class ReviewerSummaryAgent:
             raise RuntimeError(
                 f"ReviewerSummaryAgent: Ollama dropped the connection mid-response for "
                 f"case_id={case_id}. Model is likely still loading (cold start). "
-                "Retry the case after ~30 seconds, or check 'docker logs pa_ollama'."
+                "Retry the case after ~30 seconds, or check the native Ollama app "
+                "is running ('ollama ps') and phi4-mini is loaded on the GPU."
             ) from exc
         except httpx.HTTPStatusError as exc:
             raise RuntimeError(

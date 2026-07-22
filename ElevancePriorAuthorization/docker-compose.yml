@@ -1,5 +1,14 @@
 # docker-compose.yml — master compose for local development
-# Starts all Phase 1 infrastructure services.
+# Starts all Phase 1 infrastructure services EXCEPT the LLM.
+#
+# LLM (phi4-mini) is served by the NATIVE Ollama app on the host, running on
+# the machine's CUDA GPU — it is intentionally NOT a service in this file.
+# Install/run it separately:
+#   curl -fsSL https://ollama.com/install.sh | sh   # or the desktop app
+#   ollama pull phi4-mini
+#   ollama create phi4-mini-pa -f infrastructure/llm_serving/phi4-mini.Modelfile
+# See infrastructure/llm_serving/phi4-mini.Modelfile for why the custom
+# build step matters (context-window headroom).
 #
 # Constitution §II: ALL services are locally hosted — no external egress.
 #
@@ -7,7 +16,7 @@
 #   docker-compose up -d
 #
 # Selective start (as per quickstart.md):
-#   docker-compose up -d postgres minio qdrant ollama tei
+#   docker-compose up -d postgres minio qdrant tei
 
 services:
 
@@ -92,31 +101,25 @@ services:
     restart: unless-stopped
 
   # ------------------------------------------------------------------
-  # Ollama — local open-weight LLM (no external API calls)
+  # NOTE: there is intentionally no "ollama" service here anymore.
+  # phi4-mini is served by the native Ollama app installed directly on the
+  # host so it can reach the CUDA GPU without the NVIDIA Container Toolkit
+  # that the Docker image would otherwise require. See the header comment
+  # above for setup steps. It still exposes the same
+  # http://localhost:11434 endpoint the app expects, so no LLM_ENDPOINT
+  # change is needed — only LLM_MODEL (see backend/src/core/config.py).
   # ------------------------------------------------------------------
-  ollama:
-    image: ollama/ollama:latest
-    container_name: pa_ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 15s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
 
   # ------------------------------------------------------------------
-  # TEI — local embeddings (BAAI/bge-large-en-v1.5), CPU variant
+  # TEI — local embeddings (BAAI/bge-small-en-v1.5), CPU variant
   # For GPU: change image to cuda-latest and uncomment 'deploy' block.
+  # bge-small needs far less VRAM/RAM than bge-large (~1-2 GB vs ~4 GB),
+  # so the CPU variant is often fast enough here even without a GPU.
   # ------------------------------------------------------------------
   tei:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
     container_name: pa_tei
-    command: --model-id BAAI/bge-large-en-v1.5 --port 80
+    command: --model-id BAAI/bge-small-en-v1.5 --port 80
     ports:
       - "8080:80"
     volumes:
@@ -126,12 +129,11 @@ services:
       interval: 30s
       timeout: 15s
       retries: 5
-      start_period: 120s
+      start_period: 60s   # bge-small loads faster than bge-large
     restart: unless-stopped
 
 volumes:
   postgres_data:
   minio_data:
   qdrant_data:
-  ollama_data:
   tei_model_cache:

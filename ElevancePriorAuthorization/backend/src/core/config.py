@@ -34,10 +34,24 @@ class Settings(BaseSettings):
 
     # Local embedding endpoint (TEI / SentenceTransformers)
     EMBEDDING_ENDPOINT: str = "http://localhost:8080"
+    # Embedding model served behind EMBEDDING_ENDPOINT — informational only
+    # (the endpoint itself is what's actually called), but kept here as the
+    # single source of truth for the vector dimension below and for audit
+    # logging, so it never drifts out of sync with what TEI is actually
+    # serving.
+    EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
+    # Output dimension of EMBEDDING_MODEL. bge-small-en-v1.5 = 384 dims
+    # (bge-large-en-v1.5 = 1024 dims). This MUST match the model above —
+    # Qdrant's collection vector size is created from this value, so a
+    # mismatch here vs. what TEI actually serves will surface as a hard
+    # dimension-mismatch error on the first index/search call rather than
+    # silently corrupting vectors.
+    EMBEDDING_DIM: int = 384
 
-    # Local LLM endpoint (Ollama / vLLM)
+    # Local LLM endpoint — served by the native Ollama app on the host,
+    # running on the machine's CUDA GPU (NOT the Ollama Docker container).
     LLM_ENDPOINT: str = "http://localhost:11434"
-    LLM_MODEL: str = "llama3.1"
+    LLM_MODEL: str = "phi4-mini"
 
     model_config = SettingsConfigDict(
         env_file=".env.local",

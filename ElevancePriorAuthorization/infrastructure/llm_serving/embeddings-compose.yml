@@ -1,10 +1,11 @@
 # infrastructure/llm_serving/embeddings-compose.yml
-# Local Text Embeddings Inference (TEI) endpoint for BAAI/bge-large-en-v1.5.
+# Local Text Embeddings Inference (TEI) endpoint for BAAI/bge-small-en-v1.5.
 # Constitution §II: ZERO external API egress — embeddings run locally only.
 #
 # Requirements:
-#   - NVIDIA GPU with CUDA support (for GPU variant)
-#   - At least 4 GB VRAM for bge-large-en-v1.5
+#   - NVIDIA GPU with CUDA support (optional — bge-small is light enough
+#     that CPU is often fine for dev/single-node use)
+#   - ~1-2 GB VRAM/RAM for bge-small-en-v1.5 (vs ~4 GB for bge-large-en-v1.5)
 #
 # CPU-only fallback:
 #   Change image tag from cuda-latest to cpu-latest and remove the
@@ -12,6 +13,10 @@
 #
 # Usage:
 #   docker-compose -f infrastructure/llm_serving/embeddings-compose.yml up -d
+#
+# NOTE: phi4-mini (the LLM) is served separately by the native Ollama app on
+# the host, not by a service in this file — see
+# infrastructure/llm_serving/phi4-mini.Modelfile.
 
 services:
   tei:
@@ -19,7 +24,7 @@ services:
     container_name: pa_tei
     # GPU variant (comment out image above and uncomment below for CUDA):
     # image: ghcr.io/huggingface/text-embeddings-inference:cuda-latest
-    command: --model-id BAAI/bge-large-en-v1.5 --port 80
+    command: --model-id BAAI/bge-small-en-v1.5 --port 80
     ports:
       - "8080:80"
     volumes:

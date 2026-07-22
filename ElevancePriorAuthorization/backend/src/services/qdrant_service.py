@@ -9,9 +9,16 @@ Responsibilities:
   2. Index document chunks: each point carries a `case_id` payload so every
      query is strictly partitioned by case (rag-pipeline.md §Indexing & Isolation).
   3. Retrieve Top-K candidates for a given query using:
-       - Dense semantic similarity (BAAI/bge-large-en-v1.5, 1024-dim)
+       - Dense semantic similarity (BAAI/bge-small-en-v1.5, 384-dim)
        - Sparse BM25 keyword search (native Qdrant sparse vectors)
      Both are returned separately for downstream RRF fusion (T017).
+
+     NOTE on the bge-small swap: bge-small trades some retrieval recall for a
+     much smaller memory/compute footprint than bge-large. The sparse/BM25
+     path (§Exact-Match Identifier Coverage) is unaffected either way, but if
+     recall on nuanced clinical language regresses, raise top_k in
+     search_dense()/search_sparse() callers or enable the optional reranker
+     from rag-pipeline.md before this reaches a shared environment.
 
 Constitution §II: ALL inference (embeddings) uses the local TEI endpoint
 sourced through the secrets abstraction — never a public API.
@@ -44,6 +51,7 @@ from qdrant_client.models import (
     HnswConfigDiff,
 )
 
+from src.core.config import settings
 from src.core.secrets import get_secret
 
 logger = logging.getLogger(__name__)
@@ -55,7 +63,11 @@ logger = logging.getLogger(__name__)
 COLLECTION_NAME = "pa-evidence"
 DENSE_VECTOR_NAME = "dense"
 SPARSE_VECTOR_NAME = "sparse"
-DENSE_DIM = 1024  # BAAI/bge-large-en-v1.5 output dimension
+# Sourced from settings.EMBEDDING_DIM (single source of truth — see
+# core/config.py) rather than hardcoded, so the embedding model and the
+# Qdrant collection's vector size can never silently drift apart.
+# BAAI/bge-small-en-v1.5 = 384 dims (was 1024 for bge-large-en-v1.5).
+DENSE_DIM = settings.EMBEDDING_DIM
 
 # Payload field names
 PAYLOAD_CASE_ID = "case_id"
@@ -271,8 +283,20 @@ class QdrantIndexingService:
         Create the Qdrant collection if it does not already exist.
 
         Vector config:
-          - dense  : 1024-dim float, Cosine distance (BAAI/bge-large-en-v1.5)
+          - dense  : 384-dim float, Cosine distance (BAAI/bge-small-en-v1.5)
           - sparse : BM25 token indices, inner-product similarity
+
+        IMPORTANT — migration note: if this collection was previously created
+        against bge-large-en-v1.5 (1024-dim), it will NOT be auto-migrated.
+        A dimension mismatch surfaces as a hard error from Qdrant on the next
+        create_collection() call for a *new* collection name, but an
+        *existing* 1024-dim collection will simply keep accepting only
+        1024-dim vectors — mixing bge-small (384-dim) vectors into it will
+        fail loudly on upsert, which is the safe outcome, but you must still
+        explicitly drop and recreate (or rename) the collection and
+        re-index all documents when moving an existing environment from
+        bge-large to bge-small. Never point bge-small at an old bge-large
+        collection expecting it to "just work."
         """
         existing = await self._client.get_collections()
         names = {c.name for c in existing.collections}

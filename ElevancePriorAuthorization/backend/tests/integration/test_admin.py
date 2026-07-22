@@ -60,7 +60,7 @@ def _intake_result_stub(num_requirements: int = 2):
             for i in range(num_requirements)
         ],
         raw_text_preview="Clinical policy text preview…",
-        model_used="llama3.1",
+        model_used="phi4-mini",
         prompt_tokens_approx=512,
     )
 

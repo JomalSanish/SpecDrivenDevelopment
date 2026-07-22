@@ -40,7 +40,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 # Force env backend so no Vault required in CI
 os.environ.setdefault("SECRETS_BACKEND", "env")
 os.environ.setdefault("LLM_ENDPOINT", "http://localhost:11434")
-os.environ.setdefault("LLM_MODEL", "llama3")
+os.environ.setdefault("LLM_MODEL", "phi4-mini")
 os.environ.setdefault("EMBEDDING_ENDPOINT", "http://localhost:8080")
 os.environ.setdefault("QDRANT_HOST", "localhost")
 os.environ.setdefault("QDRANT_PORT", "6333")
@@ -306,14 +306,14 @@ class TestPolicyReasoningAgent:
         with patch("src.agents.reasoning_agent.get_secret") as mock_secret:
             mock_secret.side_effect = lambda key, default=None: {
                 "LLM_ENDPOINT": "http://test-ollama:11434",
-                "LLM_MODEL": "llama3",
+                "LLM_MODEL": "phi4-mini",
             }.get(key, default)
 
             from src.agents.reasoning_agent import PolicyReasoningAgent
             agent = PolicyReasoningAgent()
 
         assert agent._llm_endpoint == "http://test-ollama:11434"
-        assert agent._llm_model == "llama3"
+        assert agent._llm_model == "phi4-mini"
 
     @pytest.mark.asyncio
     async def test_assess_present_verdict(self):
@@ -323,7 +323,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         mock_response = json.dumps({
@@ -353,7 +353,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         mock_response = json.dumps({
@@ -380,7 +380,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         mock_response = json.dumps({
@@ -410,7 +410,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         mock_response = json.dumps({
@@ -437,7 +437,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         mock_response = json.dumps({
@@ -475,7 +475,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3.1",
+            llm_model="phi4-mini",
         )
 
         with patch.object(agent, "_call_llm", new=AsyncMock(return_value="not valid json")):
@@ -497,7 +497,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         mock_response = json.dumps({
@@ -528,7 +528,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         with patch.object(
@@ -560,7 +560,7 @@ class TestPolicyReasoningAgent:
 
         agent = PolicyReasoningAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
         # Confirm endpoint is local
         assert "localhost" in agent._llm_endpoint or "127.0.0.1" in agent._llm_endpoint, (
@@ -610,7 +610,7 @@ class TestReviewerSummaryAgent:
         with patch("src.agents.summary_agent.get_secret") as mock_secret:
             mock_secret.side_effect = lambda key, default=None: {
                 "LLM_ENDPOINT": "http://test-ollama:11434",
-                "LLM_MODEL": "llama3",
+                "LLM_MODEL": "phi4-mini",
             }.get(key, default)
 
             from src.agents.summary_agent import ReviewerSummaryAgent
@@ -628,7 +628,7 @@ class TestReviewerSummaryAgent:
 
         agent = ReviewerSummaryAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         with patch.object(
@@ -647,7 +647,7 @@ class TestReviewerSummaryAgent:
 
         agent = ReviewerSummaryAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         with patch.object(
@@ -667,7 +667,7 @@ class TestReviewerSummaryAgent:
 
         agent = ReviewerSummaryAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         with patch.object(
@@ -679,7 +679,7 @@ class TestReviewerSummaryAgent:
             result = await agent.draft_communication(ctx)
 
         log = json.loads(result.generation_log)
-        assert log["llm_model"] == "llama3"
+        assert log["llm_model"] == "phi4-mini"
         assert log["draft_status"] == "DRAFT"
         assert "gap_item_count" in log
 
@@ -689,7 +689,7 @@ class TestReviewerSummaryAgent:
 
         agent = ReviewerSummaryAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
 
         with patch.object(
@@ -708,7 +708,7 @@ class TestReviewerSummaryAgent:
 
         agent = ReviewerSummaryAgent(
             llm_endpoint="http://localhost:11434",
-            llm_model="llama3",
+            llm_model="phi4-mini",
         )
         assert "localhost" in agent._llm_endpoint or "127.0.0.1" in agent._llm_endpoint, (
             "LLM endpoint must be local — no external calls permitted (Constitution §II)"
@@ -737,7 +737,7 @@ class TestSecretsAbstractionWiring:
         def fake_secret(key, default=None):
             return {
                 "LLM_ENDPOINT": "http://custom-ollama:11434",
-                "LLM_MODEL": "llama3.1",
+                "LLM_MODEL": "phi4-mini",
             }.get(key, default)
 
         with _patch("src.agents.reasoning_agent.get_secret", side_effect=fake_secret):
@@ -745,7 +745,7 @@ class TestSecretsAbstractionWiring:
             agent = PolicyReasoningAgent()
 
         assert "custom-ollama" in agent._llm_endpoint
-        assert agent._llm_model == "llama3.1"
+        assert agent._llm_model == "phi4-mini"
 
     def test_summary_agent_reads_from_secrets_layer(self):
         """
@@ -758,7 +758,7 @@ class TestSecretsAbstractionWiring:
         def fake_secret(key, default=None):
             return {
                 "LLM_ENDPOINT": "http://summary-test:11434",
-                "LLM_MODEL": "llama3",
+                "LLM_MODEL": "phi4-mini",
             }.get(key, default)
 
         with _patch("src.agents.summary_agent.get_secret", side_effect=fake_secret):
@@ -780,7 +780,7 @@ class TestPhase4Integration:
     Skipped automatically unless -m integration is passed.
 
     Requirements:
-      - Ollama running at http://localhost:11434 with llama3 model loaded
+      - Ollama running at http://localhost:11434 with phi4-mini model loaded
       - TEI embedding service at http://localhost:8080
     """
 
@@ -842,7 +842,7 @@ class TestPhase4Integration:
 
         agent = PolicyReasoningAgent(
             llm_endpoint=llm_endpoint,
-            llm_model=os.environ.get("LLM_MODEL", "llama3"),
+            llm_model=os.environ.get("LLM_MODEL", "phi4-mini"),
         )
         chunk = EvidenceChunk(
             chunk_id=str(uuid.uuid4()),
@@ -890,7 +890,7 @@ class TestPhase4Integration:
 
         agent = ReviewerSummaryAgent(
             llm_endpoint=llm_endpoint,
-            llm_model=os.environ.get("LLM_MODEL", "llama3"),
+            llm_model=os.environ.get("LLM_MODEL", "phi4-mini"),
         )
         ctx = RejectionContext(
             case_id=str(uuid.uuid4()),

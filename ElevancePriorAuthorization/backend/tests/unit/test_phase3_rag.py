@@ -661,7 +661,7 @@ class TestPhase3IntegrationSmoke:
                     f"LLM endpoint {url} returned {response.status_code}"
                 )
             except httpx.ConnectError:
-                pytest.skip(f"LLM endpoint {url} not reachable (docker-compose up -d ollama)")
+                pytest.skip(f"LLM endpoint {url} not reachable (start the native Ollama app, e.g. 'ollama serve')")
 
     @pytest.mark.asyncio
     async def test_end_to_end_index_and_retrieve(self):

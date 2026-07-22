@@ -51,6 +51,22 @@ logger = logging.getLogger(__name__)
 THRESHOLD_PRESENT: float = 0.80   # confidence > 0.80  → Present
 THRESHOLD_UNCLEAR: float = 0.50   # confidence < 0.50  → Absent
 
+# ---------------------------------------------------------------------------
+# Context window (phi4-mini)
+# ---------------------------------------------------------------------------
+# Ollama defaults every model to a 2048-token context window unless told
+# otherwise via options.num_ctx — regardless of the model's actual max
+# context length. The reasoning prompt here (policy description + criteria
+# + up to 5 evidence chunks) can approach or exceed 2048 tokens on its own,
+# so leaving this at the Ollama default risks SILENT truncation of evidence
+# with no error, which would corrupt the completeness assessment. phi4-mini
+# supports a far larger context than this, so 8192 leaves comfortable
+# headroom without materially increasing latency/VRAM use. If you build a
+# custom Ollama model with `PARAMETER num_ctx` already baked in via a
+# Modelfile, this is redundant but harmless — the per-request value here
+# still takes precedence.
+_NUM_CTX: int = 8192
+
 
 # ---------------------------------------------------------------------------
 # DTOs
@@ -325,7 +341,7 @@ class PolicyReasoningAgent:
         self._llm_model = (
             llm_model
             or get_secret("LLM_MODEL")
-            or "llama3.1"
+            or "phi4-mini"
         )
         self._http_timeout = http_timeout
 
@@ -359,7 +375,7 @@ class PolicyReasoningAgent:
             "model": self._llm_model,
             "prompt": "ping",
             "stream": False,
-            "options": {"num_predict": 1},
+            "options": {"num_predict": 1, "num_ctx": _NUM_CTX},
         }
         WARMUP_TIMEOUT = 360.0  # seconds — enough for cold-start model load
         try:
@@ -412,6 +428,7 @@ class PolicyReasoningAgent:
             "options": {
                 "temperature": 0.1,   # deterministic clinical assessment
                 "num_predict": 512,
+                "num_ctx": _NUM_CTX,
             },
         }
 
@@ -482,7 +499,8 @@ class PolicyReasoningAgent:
             f"{self._http_timeout:.0f} s after {max_retries} attempt(s) for "
             f"requirement_id={requirement_id}. "
             "Ollama may still be loading the model (cold start). Retry after a minute, "
-            "or check 'docker logs pa_ollama'."
+            "or check the native Ollama app is running ('ollama ps') and phi4-mini is "
+            "pulled ('ollama list')."
         ) from last_exc
 
     # ------------------------------------------------------------------

@@ -180,22 +180,42 @@ def check_embedding() -> bool:
 # ---------------------------------------------------------------------------
 
 def check_llm() -> bool:
-    log.info("\n── Check 4: Local LLM endpoint (Ollama) ──")
+    log.info("\n── Check 4: Local LLM endpoint (native Ollama app) ──")
     os.environ.setdefault("SECRETS_BACKEND", "env")
     try:
         from src.core.secrets import get_secret, _get_manager
         _get_manager.cache_clear()
         endpoint = get_secret("LLM_ENDPOINT") or "http://localhost:11434"
+        configured_model = get_secret("LLM_MODEL") or "phi4-mini"
 
         result = http_get(f"{endpoint}/api/tags", timeout=5)
-        if result is not None:
-            models = [m.get("name") for m in result.get("models", [])]
-            log.info("  %s Ollama at %s is reachable. Available models: %s", PASS, endpoint, models)
+        if result is None:
+            log.error(
+                "  %s Ollama at %s is NOT reachable. Is the native Ollama app "
+                "running? (it is NOT a docker-compose service in this stack — "
+                "install/start it separately, e.g. 'ollama serve' or the "
+                "desktop app)",
+                FAIL, endpoint
+            )
+            return False
+
+        models = [m.get("name") for m in result.get("models", [])]
+        log.info("  %s Ollama at %s is reachable. Available models: %s", PASS, endpoint, models)
+
+        # Match on prefix so e.g. "phi4-mini" matches "phi4-mini:latest",
+        # and a custom-built context-extended model like "phi4-mini-pa"
+        # still counts as configured correctly.
+        if any(str(m).split(":")[0] == configured_model.split(":")[0] for m in models if m):
+            log.info("  %s Configured LLM_MODEL='%s' is pulled and available.", PASS, configured_model)
             return True
         else:
             log.error(
-                "  %s Ollama at %s is NOT reachable. Is docker-compose up?",
-                FAIL, endpoint
+                "  %s Configured LLM_MODEL='%s' was NOT found among available models %s. "
+                "Run 'ollama pull %s' (or build the context-extended variant via "
+                "'ollama create phi4-mini-pa -f "
+                "infrastructure/llm_serving/phi4-mini.Modelfile' and set "
+                "LLM_MODEL=phi4-mini-pa).",
+                FAIL, configured_model, models, configured_model.split(":")[0],
             )
             return False
     except Exception as exc:

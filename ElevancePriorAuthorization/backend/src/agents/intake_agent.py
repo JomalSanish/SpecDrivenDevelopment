@@ -142,7 +142,7 @@ class IntakeClassificationAgent:
 
     def __init__(self) -> None:
         self._endpoint = (get_secret("LLM_ENDPOINT") or "http://localhost:11434").rstrip("/")
-        self._model = get_secret("LLM_MODEL") or "llama3.1"
+        self._model = get_secret("LLM_MODEL") or "phi4-mini"
         self._chat_url = f"{self._endpoint}/v1/chat/completions"
         logger.info(
             "IntakeClassificationAgent initialised: endpoint=%s model=%s",
@@ -173,6 +173,18 @@ class IntakeClassificationAgent:
             "temperature": 0.1,
             "max_tokens": 2048,
             "stream": False,
+            # NOTE: Ollama's OpenAI-compatible /v1/chat/completions endpoint
+            # honors "options" as a non-standard extension on recent Ollama
+            # versions, but this is NOT guaranteed across versions the way
+            # it is on the native /api/generate and /api/chat endpoints (see
+            # reasoning_agent.py's _NUM_CTX comment for why this matters —
+            # full policy-document text can easily exceed Ollama's 2048-token
+            # default context window). If policy documents are truncated in
+            # practice, the reliable fix is a custom Ollama model with
+            # num_ctx baked in via Modelfile — see
+            # speckit/infrastructure/llm_serving/phi4-mini.Modelfile — and
+            # point LLM_MODEL at that model name instead.
+            "options": {"num_ctx": 8192},
         }
 
         logger.debug(
@@ -189,13 +201,15 @@ class IntakeClassificationAgent:
             except httpx.ConnectError as exc:
                 raise RuntimeError(
                     f"Intake agent cannot reach local LLM at {self._chat_url}. "
-                    "Is Ollama running? (docker-compose up -d ollama)"
+                    "Is the native Ollama app running? Start it and confirm with "
+                    "'ollama list' that phi4-mini is pulled."
                 ) from exc
             except httpx.ReadTimeout as exc:
                 raise RuntimeError(
                     f"Intake agent: LLM at {self._chat_url} did not respond within 300 seconds. "
                     "Ollama may still be loading the model into memory (cold start). "
-                    "Wait a minute and retry, or check 'docker logs pa_ollama'."
+                    "Wait a minute and retry, or run 'ollama ps' to confirm phi4-mini "
+                    "is loaded on the GPU."
                 ) from exc
             except httpx.HTTPStatusError as exc:
                 raise RuntimeError(

@@ -23,6 +23,7 @@ import pytest
 
 from src.services.qdrant_service import (
     COLLECTION_NAME,
+    DENSE_DIM,
     PAYLOAD_CASE_ID,
     PAYLOAD_CHUNK_ID,
     PAYLOAD_DOCUMENT_ID,
@@ -47,7 +48,7 @@ def _make_chunk(case_id: str, doc_id: str | None = None) -> IndexedChunk:
             page_number=1,
             text="Sample clinical documentation text.",
         ),
-        dense_vector=[0.1] * 1024,  # 1024-dim dummy BAAI/bge vector
+        dense_vector=[0.1] * DENSE_DIM,  # dummy vector sized to the configured embedding model
         sparse_indices=[1, 5, 10],
         sparse_values=[0.4, 0.3, 0.3],
     )

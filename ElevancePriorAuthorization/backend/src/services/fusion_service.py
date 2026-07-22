@@ -5,7 +5,7 @@ Reciprocal Rank Fusion (RRF) for combining dense + sparse BM25 retrieval
 result lists.
 
 Specification (rag-pipeline.md §Hybrid Retrieval & Fusion):
-  - Dense Vector : 1024-dim float from bge-large-en (HNSW, Cosine)
+  - Dense Vector : 384-dim float from bge-small-en-v1.5 (HNSW, Cosine)
   - Sparse Vector : BM25 token indices (Qdrant native sparse)
   - Fusion        : RRF with configurable k constant (default k=60 per
                     standard RRF paper: Cormack et al., 2009)

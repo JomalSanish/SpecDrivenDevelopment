@@ -23,7 +23,7 @@ Usage
         case_id=case.id,
         actor_id="reasoning_agent",
         prompt="...",
-        model="llama3.1",
+        model="phi4-mini",
         response_excerpt="...",
     )
 
